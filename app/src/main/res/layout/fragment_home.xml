@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.HomeFragment">
+
+    <ImageView
+        android:id="@+id/imgPlayOfflineFriend"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/x"
+        android:layout_alignParentLeft="true"/>
+
+    <ImageView
+        android:id="@+id/imgPlayOnline"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/o"
+        android:layout_toRightOf="@+id/imgPlayOfflineFriend"/>
+
+    <ImageView
+        android:id="@+id/imgPlayOfflineComputer"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/profile"
+        android:layout_toRightOf="@+id/imgPlayOnline"/>
+
+</RelativeLayout>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1057777997279",
+    "firebase_url": "https://super-tic-tac-toe-online.firebaseio.com",
+    "project_id": "super-tic-tac-toe-online",
+    "storage_bucket": "super-tic-tac-toe-online.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1057777997279:android:462a58eaa704983fcde06a",
+        "android_client_info": {
+          "package_name": "com.sagi.supertictactoeonline"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1057777997279-9ts1qrietnbjkj4l3t1e8aj0bt162lib.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sagi.supertictactoeonline",
+            "certificate_hash": "6b2d306b4a9173af2ba75290add5958cd7507c3e"
+          }
+        },
+        {
+          "client_id": "1057777997279-cditkug5sgut217qvlgo9jgh69kbmbbo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmd5v68Q1b8_YmUkP8QNDUseNz5vLGbpM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1057777997279-cditkug5sgut217qvlgo9jgh69kbmbbo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

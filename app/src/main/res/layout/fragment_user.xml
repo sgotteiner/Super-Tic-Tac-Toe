@@ -1,0 +1,218 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:fillViewport="true"
+    android:scrollbars="vertical"
+    android:background="@color/colorBackgroundItem"
+    tools:context="com.sagi.supertictactoeonline.fragments.UserFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingHorizontal="20dp">
+
+        <TextView
+            android:id="@+id/txtTitleUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:text="My Profile"
+            android:textColor="@color/colorText"
+            android:textSize="50sp" />
+
+        <RelativeLayout
+            android:id="@+id/r1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txtTitleUser">
+
+            <TextView
+                android:id="@+id/txtHeaderName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:text="First Name"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+
+            <EditText
+                android:id="@+id/edtFName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="20dp"
+                android:layout_toRightOf="@+id/txtHeaderName"
+                android:gravity="right|center_vertical"
+                android:singleLine="true"
+                android:text="Daniel"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/text_view_header" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/r2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/r1">
+
+            <TextView
+                android:id="@+id/txtHeaderLastName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:text="Last Name"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+
+            <EditText
+                android:id="@+id/edtLName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="20dp"
+                android:layout_toRightOf="@+id/txtHeaderLastName"
+                android:gravity="right|center_vertical"
+                android:singleLine="true"
+                android:text="Hadad"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/text_view_header" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/r3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/r2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:text="Email"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+
+            <TextView
+                android:id="@+id/txtEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="20dp"
+                android:text="daniel@gmail.com"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/text_view_header" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/r4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/r3">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:text="Rank"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+
+            <TextView
+                android:id="@+id/txtRank"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="20dp"
+                android:text="1569"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/text_view_header" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/r5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/r4">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:text="Birthday"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+
+            <TextView
+                android:id="@+id/txtBDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="20dp"
+                android:text="22/12/2018"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/text_view_header" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/linearLayoutImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/r5"
+            android:layout_marginVertical="20dp"
+            android:gravity="center">
+
+            <com.sagi.supertictactoeonline.utilities.custom_ui.CircleImageView
+                android:id="@+id/imgProfilePicture"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/profile" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:text="Profile Picture"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_view_header" />
+        </RelativeLayout>
+
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/linearLayoutImage"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/shape_editext"
+            android:text="save"
+            android:textColor="@color/colorWhite" />
+
+
+    </RelativeLayout>
+
+</ScrollView>
