@@ -26,33 +26,12 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        handleIsManagerApp();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 showCurrentScreen();
             }
         }, TIME_SPLASH);
-    }
-
-
-    private void handleIsManagerApp() {
-        final User user = SharedPreferencesHelper.getInstance(this).getUser();
-        if (user == null)
-            return;
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference();
-        myRef.child(FireBaseConstant.USERS_TABLE).child(user.textEmailForFirebase()).child(FireBaseConstant.IS_MANAGER_APP).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                boolean isManager = dataSnapshot.getValue(Boolean.class);
-                user.setManagerApp(isManager);
-                SharedPreferencesHelper.getInstance(SplashActivity.this).setUser(user);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
     }
 
     private void showCurrentScreen() {

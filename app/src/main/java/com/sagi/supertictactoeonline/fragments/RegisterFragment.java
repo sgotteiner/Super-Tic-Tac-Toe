@@ -164,7 +164,6 @@ public class RegisterFragment extends Fragment implements IWaitingProgressBar {
         progressDialog.show();
     }
 
-
     private void getImageFromGallery() {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
