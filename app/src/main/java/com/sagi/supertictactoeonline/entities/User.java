@@ -12,15 +12,6 @@ public class User implements Serializable {
     private long birthDay;
     private long lastTimeSeen;
     private int rank;
-    private boolean isManagerApp = false;
-
-    public boolean isManagerApp() {
-        return isManagerApp;
-    }
-
-    public void setManagerApp(boolean managerApp) {
-        isManagerApp = managerApp;
-    }
 
     public int getRank() {
         return rank;
@@ -42,22 +33,13 @@ public class User implements Serializable {
        return  Utils.textEmailForFirebase(email);
     }
 
-    public User(String firstName, String lastName, String email, long birthDay, long lastTimeSeen, int rank, boolean isManagerApp) {
+    public User(String firstName, String lastName, String email, long birthDay, long lastTimeSeen, int rank) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.birthDay = birthDay;
         this.lastTimeSeen = lastTimeSeen;
         this.rank = rank;
-        this.isManagerApp = isManagerApp;
-    }
-
-    public User(String firstName, String lastName, String email, long birthDay, long lastTimeSeen) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.birthDay = birthDay;
-        this.lastTimeSeen = lastTimeSeen;
     }
 
     public User() {

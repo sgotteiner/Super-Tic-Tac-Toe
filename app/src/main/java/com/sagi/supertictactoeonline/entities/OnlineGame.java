@@ -1,5 +1,7 @@
 package com.sagi.supertictactoeonline.entities;
 
+import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
+
 public class OnlineGame extends Game {
 
     private String keyGame, emailPlayer1, emailPlayer2;
@@ -13,6 +15,7 @@ public class OnlineGame extends Game {
         this.keyGame = keyGame;
         this.emailPlayer1 = emailPlayer1;
         emailPlayer2 = "";
+        lastMoveId = -1;
         isPlayer1Connected = true;
         isPlayer2Connected = false;
     }
@@ -41,11 +44,11 @@ public class OnlineGame extends Game {
         this.emailPlayer1 = emailPlayer1;
     }
 
-    public String getGetEmailPlayer2() {
+    public String getEmailPlayer2() {
         return emailPlayer2;
     }
 
-    public void setGetEmailPlayer2(String emailPlayer2) {
+    public void setEmailPlayer2(String emailPlayer2) {
         this.emailPlayer2 = emailPlayer2;
     }
 

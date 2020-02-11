@@ -27,15 +27,16 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.sagi.supertictactoeonline.R;
-import com.sagi.supertictactoeonline.entities.Game;
 import com.sagi.supertictactoeonline.entities.OnlineGame;
 import com.sagi.supertictactoeonline.entities.User;
 import com.sagi.supertictactoeonline.fragments.HomeFragment;
 import com.sagi.supertictactoeonline.fragments.PlayFragment;
 import com.sagi.supertictactoeonline.fragments.UserFragment;
+import com.sagi.supertictactoeonline.interfaces.IHomePage;
 import com.sagi.supertictactoeonline.interfaces.IPlayFragmentUpdateGameChanges;
 import com.sagi.supertictactoeonline.interfaces.IUserFragmentGetEventFromMain;
 import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
+import com.sagi.supertictactoeonline.utilities.Utils;
 import com.sagi.supertictactoeonline.utilities.constants.Constants;
 import com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant;
 
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements
     private NavigationView mNavigationView;
     private IUserFragmentGetEventFromMain iUserFragmentGetEventFromMain;
     private IPlayFragmentUpdateGameChanges iPlayFragmentUpdateGameChanges;
+    private IHomePage iHomePage;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -153,22 +155,91 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void rematch(Constants.MODE mode, OnlineGame game, int level) {
-        showFragment(PlayFragment.newInstance(mode, game, level));
-    }
-
-    @Override
-    public void updateGameState(OnlineGame game) {
+    public void rematch(OnlineGame game) {
         myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).setValue(game);
     }
 
     @Override
+    public void updateGameState(String key, int moveId) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(key).child("lastMoveId").setValue(moveId);
+    }
+
+    private ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            OnlineGame game = dataSnapshot.getValue(OnlineGame.class);
+            if (iPlayFragmentUpdateGameChanges != null)
+                iPlayFragmentUpdateGameChanges.updateGameChanges(game);
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+    @Override
     public void listenToGame(String keyGame) {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).addValueEventListener(new ValueEventListener() {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    public void leaveGame(String keyGame, boolean isX, Constants.MODE mode, boolean isOtherPlayerLeft) {
+        if (mode == Constants.MODE.ONLINE) {
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).removeEventListener(valueEventListener);
+            if (isOtherPlayerLeft)
+                deleteGame(keyGame);
+            else
+                notifyGameILeft(keyGame, isX);
+        }
+        showHomePage();
+    }
+
+    private void notifyGameILeft(String keyGame, boolean isX) {
+        if (isX) {
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).child("emailPlayer1").setValue("");
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).child("player1Connected").setValue(false);
+        } else {
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).child("emailPlayer2").setValue("");
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).child("player2Connectd").setValue(false);
+        }
+    }
+
+    private void deleteGame(final String keyGame) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).removeValue();
+    }
+
+    @Override
+    public void updateScore(User player1, User player2, boolean xTurn) {
+        int rank1 = player1.getRank(), rank2 = player2.getRank();
+        int difScore = calculateDifference(rank1, rank2);
+        int incScore = 8 + difScore, decScore = 8 - difScore;
+        incScore = incScore < 2 ? 2 : incScore;
+        decScore = decScore < 2 ? 2 : decScore;
+        if (xTurn) {
+            rank1 += decScore;
+            rank2 -= incScore;
+        } else {
+            rank1 -= decScore;
+            rank2 += incScore;
+        }
+        rank1 = rank1 < 0 ? 0 : rank1;
+        rank2 = rank2 < 0 ? 0 : rank2;
+
+        if (SharedPreferencesHelper.getInstance(this).getUser().getEmail().equals(player1.getEmail())) {
+            SharedPreferencesHelper.getInstance(this).setRank(rank1);
+        } else SharedPreferencesHelper.getInstance(this).setRank(rank2);
+        myRef.child(USERS_TABLE).child(Utils.textEmailForFirebase(player1.getEmail())).child("rank").setValue(rank1);
+        myRef.child(USERS_TABLE).child(Utils.textEmailForFirebase(player2.getEmail())).child("rank").setValue(rank2);
+    }
+
+    @Override
+    public void getOtherPlayer(String email) {
+        myRef.child(USERS_TABLE).child(Utils.textEmailForFirebase(email)).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                OnlineGame game = dataSnapshot.getValue(OnlineGame.class);
-                iPlayFragmentUpdateGameChanges.updateGameChanges(game);
+                User user = dataSnapshot.getValue(User.class);
+                iPlayFragmentUpdateGameChanges.setOtherPlayer(user);
             }
 
             @Override
@@ -178,9 +249,13 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+    private int calculateDifference(int rank1, int rank2) {
+        return (rank1 - rank2) / 50;
+    }
+
     @Override
     public void registerGameEvent(IPlayFragmentUpdateGameChanges iPlayFragmentUpdateGameChanges) {
-        this.iPlayFragmentUpdateGameChanges=iPlayFragmentUpdateGameChanges;
+        this.iPlayFragmentUpdateGameChanges = iPlayFragmentUpdateGameChanges;
     }
 
     @Override
@@ -228,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void showHomePage() {
-        fragment = new PlayFragment();
+        fragment = new HomeFragment();
         showFragment(fragment);
     }
 
@@ -238,15 +313,57 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public OnlineGame findGame() {
-        final OnlineGame[] game = new OnlineGame[1];
+    public void findGame() {
+        final String[] key = new String[1];
         myRef.child(FireBaseConstant.GAMES_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                boolean isFound = false;
+                OnlineGame game;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    game[0] = snapshot.getValue(OnlineGame.class);
-                    if (game[0].getGetEmailPlayer2().equals(""))
-                        return;
+                    game = snapshot.getValue(OnlineGame.class);
+                    key[0] = game.getKeyGame();
+                    if (!game.isPlayer2Connected()) {
+                        String email = SharedPreferencesHelper.getInstance(MainActivity.this).getUser().getEmail();
+                        game.setEmailPlayer2(email);
+                        game.setPlayer2Connected(true);
+                        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).child("emailPlayer2").setValue(email);
+                        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).child("player2Connected").setValue(true);
+                        iHomePage.setGame(game);
+                        myRef.child(FireBaseConstant.GAMES_TABLE).child(key[0]).child("player1Connected").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (iPlayFragmentUpdateGameChanges != null)
+                                    iPlayFragmentUpdateGameChanges.onOtherPlayerConnectionEvent(dataSnapshot.getValue(boolean.class));
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                        isFound = true;
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    key[0] = myRef.child(FireBaseConstant.GAMES_TABLE).push().getKey();
+                    game = new OnlineGame(14, key[0],
+                            SharedPreferencesHelper.getInstance(MainActivity.this).getUser().getEmail());
+                    myRef.child(FireBaseConstant.GAMES_TABLE).child(key[0]).setValue(game);
+                    iHomePage.setGame(game);
+                    myRef.child(FireBaseConstant.GAMES_TABLE).child(key[0]).child("player2Connected").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (iPlayFragmentUpdateGameChanges != null)
+                                iPlayFragmentUpdateGameChanges.onOtherPlayerConnectionEvent(dataSnapshot.getValue(boolean.class));
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
                 }
             }
 
@@ -255,17 +372,10 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
-        if (game[0] != null)
-            if (!game[0].getGetEmailPlayer2().equals("")) {
-                game[0].setPlayer2Connected(true);
-                return game[0];
-            }
-        String keyGame = myRef.child(FireBaseConstant.GAMES_TABLE).push().getKey();
-        game[0] = new OnlineGame(14, keyGame,
-                SharedPreferencesHelper.getInstance(this).getUser().getEmail());
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).setValue(game[0]);
-        return game[0];
     }
 
-
+    @Override
+    public void registerEventFromMain(IHomePage iHomePage) {
+        this.iHomePage = iHomePage;
+    }
 }

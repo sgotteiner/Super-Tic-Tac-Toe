@@ -56,13 +56,12 @@ public class SharedPreferencesHelper {
         long birthday = preferences.getLong(BIRTHDAY, -1);
 
         long lastTimeSeen = preferences.getLong(LAST_TIME_SEEN, -1);
-        boolean isManagerApp=preferences.getBoolean(IS_MANAGER_APP,false);
         int totalMoney=preferences.getInt(TOTAL_MONEY,0);
 
         if (email == null || birthday == -1)
             return null;
 
-        return new User(firstName, lastName, email,birthday,lastTimeSeen,totalMoney,isManagerApp);
+        return new User(firstName, lastName, email,birthday,lastTimeSeen,totalMoney);
     }
 
     public void setUser(User user) {
@@ -71,7 +70,6 @@ public class SharedPreferencesHelper {
         preferences.edit().putString(EMAIL, user.getEmail()).commit();
         preferences.edit().putLong(BIRTHDAY, user.getBirthDay()).commit();
         preferences.edit().putLong(LAST_TIME_SEEN, user.getLastTimeSeen()).commit();
-        preferences.edit().putBoolean(IS_MANAGER_APP,user.isManagerApp()).commit();
         setRank(user.getRank());
     }
 

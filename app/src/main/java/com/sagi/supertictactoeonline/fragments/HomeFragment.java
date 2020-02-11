@@ -1,7 +1,6 @@
 package com.sagi.supertictactoeonline.fragments;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,11 +13,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.sagi.supertictactoeonline.R;
+import com.sagi.supertictactoeonline.entities.ComputerGame;
 import com.sagi.supertictactoeonline.entities.Game;
 import com.sagi.supertictactoeonline.entities.OnlineGame;
+import com.sagi.supertictactoeonline.interfaces.IHomePage;
 import com.sagi.supertictactoeonline.utilities.constants.Constants;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements IHomePage {
 
     private OnFragmentInteractionListener mListener;
     private ImageView imgPlayOfflineFriend, imgPlayOnline, imgPlayOfflineComputer;
@@ -50,8 +51,7 @@ public class HomeFragment extends Fragment {
         imgPlayOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnlineGame game = mListener.findGame();
-                mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0);
+                mListener.findGame();
             }
         });
         imgPlayOfflineComputer.setOnClickListener(new View.OnClickListener() {
@@ -74,6 +74,7 @@ public class HomeFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
+            mListener.registerEventFromMain(this);
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -83,13 +84,21 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        mListener.registerEventFromMain(null);
         mListener = null;
+    }
+
+    @Override
+    public void setGame(OnlineGame game) {
+        mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0);
     }
 
     public interface OnFragmentInteractionListener {
 
         void showPlayFragment(Constants.MODE mode, OnlineGame game, int level);
 
-        OnlineGame findGame();
+        void findGame();
+
+        void registerEventFromMain(IHomePage iHomePage);
     }
 }

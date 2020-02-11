@@ -111,8 +111,7 @@ public class RegisterFragment extends Fragment implements IWaitingProgressBar {
 
                 if (!Utils.isValid(email, pass, fName, lName, dateBirthDay, getContext()))
                     return;
-                user = new User(edtFirstName.getText().toString(), edtLastName.getText().toString(), edtEmail.getText().toString(), dateBirthDay, System.currentTimeMillis());
-                user.setRank(1000);
+                user = new User(edtFirstName.getText().toString(), edtLastName.getText().toString(), edtEmail.getText().toString(), dateBirthDay, System.currentTimeMillis(),1000);
                 showProgressDialod();
                 mListener.createUser(user, edtPass.getText().toString(), isRememberMe, newProfilePic);
             }

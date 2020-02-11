@@ -11,22 +11,27 @@ public class Game implements Serializable {
     protected int[][] arrSigns;
     protected int[][] arrWeights;
     protected boolean isOver;
-    private int lastI, lastJ;
 
-    public Game(){}
+    public Game() {
+    }
 
     public Game(int boardSize) {
         this.boardSize = boardSize;
         isXTurn = true;
-        arrSigns = new int[boardSize][boardSize];
-        arrWeights = new int[boardSize][boardSize];
         isOver = false;
+    }
+
+    public void initialSigns() {
+        arrSigns = new int[boardSize][boardSize];
+    }
+
+    public void initialWeights() {
+        arrWeights = new int[boardSize][boardSize];
         calculateWeights();
     }
 
     public void makeTurn(int i, int j) {
-        if (arrSigns[i][j] != 0)
-            changeGameParameters(i, j);
+        changeGameParameters(i, j);
     }
 
     protected void changeGameParameters(int i, int j) {
@@ -37,8 +42,10 @@ public class Game implements Serializable {
         isXTurn = !isXTurn;
     }
 
-    public int getLastId() {
-        return lastI * boardSize + lastJ;
+    public boolean isLegalMove(int i, int j) {
+        if (arrSigns[i][j] == 0)
+            return true;
+        else return false;
     }
 
     public boolean isXTurn() {
@@ -73,7 +80,7 @@ public class Game implements Serializable {
         isOver = over;
     }
 
-    private void calculateWeights() {
+    protected void calculateWeights() {
         for (int i = 0; i < boardSize / 2; i++) {
             arrWeights[i][i] = i + 1;
             arrWeights[boardSize - i - 1][boardSize - i - 1] = i + 1;
