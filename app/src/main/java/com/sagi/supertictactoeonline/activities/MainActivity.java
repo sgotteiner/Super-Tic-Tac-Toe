@@ -162,8 +162,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void updateGameState(String key, int moveId) {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(key).child("lastMoveId").setValue(moveId);
+    public void updateGameState(String key, int moveId, boolean isRandom) {
+        String gameTable = gameTable(isRandom);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).child("lastMoveId").setValue(moveId);
     }
 
     private ValueEventListener valueEventListenerGame = new ValueEventListener() {
@@ -181,30 +182,44 @@ public class MainActivity extends AppCompatActivity implements
     };
 
     @Override
-    public void listenToGame(String keyGame) {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).addValueEventListener(valueEventListenerGame);
+    public void listenToGame(String keyGame, boolean isRandom) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(keyGame).addValueEventListener(valueEventListenerGame);
+    }
+
+    private String gameTable(boolean isRandom) {
+        return isRandom ? FireBaseConstant.RANDOM_GAMES_TABLE : FireBaseConstant.FRIENDS_GAMES_TABLE;
     }
 
     @Override
-    public void leaveGame(String keyGame, boolean isX, Constants.MODE mode, boolean isOtherPlayerLeft) {
+    public void leaveGame(final String keyGame, boolean isX, Constants.MODE mode, final boolean isRandom) {
         if (mode == Constants.MODE.ONLINE) {
-            if (isOtherPlayerLeft)
-                deleteGame(keyGame);
-            else {
-                myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).removeEventListener(valueEventListenerGame);
-                notifyGameILeft(keyGame, isX);
-            }
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(keyGame).removeEventListener(valueEventListenerGame);
+            notifyGameILeft(keyGame, isX, isRandom);
+            myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(keyGame).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    OnlineGame game = dataSnapshot.getValue(OnlineGame.class);
+                    if (game != null)
+                        if (!game.isPlayer1Connected() || !game.isPlayer2Connected())
+                            deleteGame(keyGame, isRandom);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         }
         showHomePage();
     }
 
-    private void notifyGameILeft(String keyGame, boolean isX) {
+    private void notifyGameILeft(String keyGame, boolean isX, boolean isRandom) {
         String player = isX ? "player1Connected" : "player2Connected";
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).child(player).setValue(false);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(keyGame).child(player).setValue(false);
     }
 
-    private void deleteGame(String keyGame) {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(keyGame).removeValue();
+    private void deleteGame(String keyGame, boolean isRandom) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(keyGame).removeValue();
     }
 
     @Override
@@ -302,14 +317,14 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void showPlayFragment(Constants.MODE mode, OnlineGame game, int level) {
-        showFragment(PlayFragment.newInstance(mode, game, level));
+    public void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom) {
+        showFragment(PlayFragment.newInstance(mode, game, level, isRandom));
     }
 
     @Override
     public void findGame() {
         final String[] key = new String[1];
-        myRef.child(FireBaseConstant.GAMES_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(FireBaseConstant.RANDOM_GAMES_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 boolean isFound = false;
@@ -317,14 +332,14 @@ public class MainActivity extends AppCompatActivity implements
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     game = snapshot.getValue(OnlineGame.class);
                     if (!game.isPlayer2Connected()) {
-                        joinGame(game);
+                        joinGame(game, true);
                         isFound = true;
                         break;
                     }
                 }
                 if (!isFound) {
                     key[0] = myRef.child(FireBaseConstant.GAMES_TABLE).push().getKey();
-                    createGame(SharedPreferencesHelper.getInstance(MainActivity.this).getUser(), key[0]);
+                    createGame(SharedPreferencesHelper.getInstance(MainActivity.this).getUser(), key[0], true);
                 }
             }
 
@@ -335,22 +350,24 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void joinGame(OnlineGame game) {
+    private void joinGame(OnlineGame game, boolean isRandom) {
         String email = SharedPreferencesHelper.getInstance(MainActivity.this).getUser().getEmail();
         game.setEmailPlayer2(email);
         game.setPlayer2Connected(true);
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).child("emailPlayer2").setValue(email);
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).child("player2Connected").setValue(true);
-        iHomePage.setGame(game);
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).child("player1Connected").addValueEventListener(valueEventListenerConnection);
+        String gameTable = gameTable(isRandom);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("emailPlayer2").setValue(email);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("player2Connected").setValue(true);
+        iHomePage.setGame(game, isRandom);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("player1Connected").addValueEventListener(valueEventListenerConnection);
     }
 
-    private void createGame(User user, String key) {
+    private void createGame(User user, String key, boolean isRandom) {
         OnlineGame game = new OnlineGame(14, key,
                 user.getEmail());
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(key).setValue(game);
-        iHomePage.setGame(game);
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(key).child("player2Connected").addValueEventListener(valueEventListenerConnection);
+        String gameTable = gameTable(isRandom);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).setValue(game);
+        iHomePage.setGame(game, isRandom);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).child("player2Connected").addValueEventListener(valueEventListenerConnection);
     }
 
     private ValueEventListener valueEventListenerConnection = new ValueEventListener() {
@@ -369,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void sendInvitation(User user, String email) {
         String key = Utils.textEmailForFirebase(email) + "/" + user.textEmailForFirebase();
-        createGame(user, key);
+        createGame(user, key, false);
     }
 
     @Override
@@ -407,7 +424,8 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void loadInvitations() {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(SharedPreferencesHelper.getInstance(this).getUser().textEmailForFirebase()).addValueEventListener(new ValueEventListener() {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(FireBaseConstant.FRIENDS_GAMES_TABLE)
+                .child(SharedPreferencesHelper.getInstance(this).getUser().textEmailForFirebase()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 final ArrayList<User> users = new ArrayList<>();
@@ -442,10 +460,10 @@ public class MainActivity extends AppCompatActivity implements
     public void joinGame(final User user, final String email) {
         myRef.child(FireBaseConstant.FRIENDS_TABLE).child(user.textEmailForFirebase()).child(Utils.textEmailForFirebase(email)).setValue(Utils.textEmailForFirebase(email));
         myRef.child(FireBaseConstant.FRIENDS_TABLE).child(Utils.textEmailForFirebase(email)).child(user.textEmailForFirebase()).setValue(user.textEmailForFirebase());
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(user.textEmailForFirebase()).child(email).addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(FireBaseConstant.FRIENDS_GAMES_TABLE).child(user.textEmailForFirebase()).child(email).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                joinGame(dataSnapshot.getValue(OnlineGame.class));
+                joinGame(dataSnapshot.getValue(OnlineGame.class), false);
             }
 
             @Override

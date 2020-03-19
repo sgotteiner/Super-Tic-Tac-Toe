@@ -36,7 +36,8 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private static final String GAME = "key";
     private static String MODE = "mode";
     private static String LEVEL = "level";
-    private boolean isX;
+    private static String IS_RANDOM = "is random";
+    private boolean isX, isRandom;
     private Constants.MODE mode;
     private Game game;
     int boardSize;
@@ -102,11 +103,12 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         }
     }
 
-    public static PlayFragment newInstance(Constants.MODE mode, OnlineGame game, int level) {
+    public static PlayFragment newInstance(Constants.MODE mode, OnlineGame game, int level, boolean isRandom) {
         Bundle bundle = new Bundle();
         bundle.putSerializable(MODE, mode);
         bundle.putSerializable(GAME, (Serializable) game);
         bundle.putInt(LEVEL, level);
+        bundle.putBoolean(IS_RANDOM, isRandom);
         PlayFragment fragment = new PlayFragment();
         fragment.setArguments(bundle);
         return fragment;
@@ -125,7 +127,8 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (!((OnlineGame) game).getEmailPlayer1().equals("") && !((OnlineGame) game).getEmailPlayer2().equals(""))
                 isGameStarted = true;
             isX = ((OnlineGame) game).getEmailPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getEmail());
-            mListener.listenToGame(((OnlineGame) game).getKeyGame());
+            isRandom = bundle.getBoolean(IS_RANDOM);
+            mListener.listenToGame(((OnlineGame) game).getKeyGame(), isRandom);
         }
         game.initialSigns();
         game.initialWeights();
@@ -173,7 +176,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 makeTurn(moveId / boardSize, moveId % boardSize);
             }
             if (mode == Constants.MODE.ONLINE) {
-                mListener.updateGameState(((OnlineGame) game).getKeyGame(), id);
+                mListener.updateGameState(((OnlineGame) game).getKeyGame(), id, isRandom);
             }
         } else Toast.makeText(getContext(), "can't", Toast.LENGTH_SHORT).show();
     }
@@ -249,7 +252,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                         else
                             ((OnlineGame) game).setPlayer2Connected(false);
                     }
-                    mListener.leaveGame(key, isX, mode, isOtherPlayerLeft);
+                    mListener.leaveGame(key, isX, mode, isRandom);
                 }
                 dialog.cancel();
             }
@@ -298,7 +301,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onStop() {
         if (game instanceof OnlineGame)
-            mListener.leaveGame(((OnlineGame) game).getKeyGame(), isX, mode, isOtherPlayerLeft);
+            mListener.leaveGame(((OnlineGame) game).getKeyGame(), isX, mode, isRandom);
         super.onStop();
     }
 
@@ -337,13 +340,13 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     public interface OnFragmentInteractionListener {
         void rematch(OnlineGame game);
 
-        void updateGameState(String key, int moveId);
+        void updateGameState(String key, int moveId, boolean isRandom);
 
-        void listenToGame(String keyGame);
+        void listenToGame(String keyGame, boolean aBoolean);
 
         void registerGameEvent(IPlayFragmentUpdateGameChanges iPlayFragmentUpdateGameChanges);
 
-        void leaveGame(String keyGame, boolean isX, Constants.MODE mode, boolean isOtherPlayerLeft);
+        void leaveGame(String keyGame, boolean isX, Constants.MODE mode, boolean isRandom);
 
         void updateScore(User emailPlayer1, User emailPlayer11, boolean xTurn);
 

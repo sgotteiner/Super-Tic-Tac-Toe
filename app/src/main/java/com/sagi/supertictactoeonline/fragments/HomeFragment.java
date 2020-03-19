@@ -57,7 +57,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOfflineFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.showPlayFragment(Constants.MODE.OFFLINE_FRIEND, null, 0);
+                mListener.showPlayFragment(Constants.MODE.OFFLINE_FRIEND, null, 0, false);
             }
         });
         imgPlayOnlineRandom.setOnClickListener(new View.OnClickListener() {
@@ -77,7 +77,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOfflineComputer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.showPlayFragment(Constants.MODE.OFFLINE_COMPUTER, null, 2);
+                mListener.showPlayFragment(Constants.MODE.OFFLINE_COMPUTER, null, 2, false);
             }
         });
     }
@@ -184,8 +184,8 @@ public class HomeFragment extends Fragment implements IHomePage {
     }
 
     @Override
-    public void setGame(OnlineGame game) {
-        mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0);
+    public void setGame(OnlineGame game, boolean isRandom) {
+        mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0, isRandom);
     }
 
     @Override
@@ -219,7 +219,7 @@ public class HomeFragment extends Fragment implements IHomePage {
 
     public interface OnFragmentInteractionListener {
 
-        void showPlayFragment(Constants.MODE mode, OnlineGame game, int level);
+        void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom);
 
         void findGame();
 

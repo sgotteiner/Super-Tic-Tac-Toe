@@ -6,7 +6,7 @@ import com.sagi.supertictactoeonline.entities.User;
 import java.util.ArrayList;
 
 public interface IHomePage {
-    public void setGame(OnlineGame game);
+    public void setGame(OnlineGame game, boolean isRandom);
 
     void setFriends(ArrayList<User> friends);
 
