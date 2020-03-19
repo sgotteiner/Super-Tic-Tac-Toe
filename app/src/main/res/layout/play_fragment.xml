@@ -10,34 +10,50 @@
         android:id="@+id/txtTurn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="turn of x"
         android:layout_centerHorizontal="true"
-        android:textSize="20sp"
         android:layout_marginVertical="20dp"
-        android:background="@drawable/empty_cell"/>
+        android:background="@drawable/empty_cell"
+        android:text="turn of x"
+        android:textSize="20sp" />
 
-    <ScrollView
-        android:id="@+id/layout"
-        android:layout_height="match_parent"
-        android:scrollbars="horizontal|vertical"
-        android:layout_width="match_parent"
-        android:layout_marginTop="5dip"
-        android:scrollbarStyle="outsideInset"
-        android:layout_below="@+id/txtTurn">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/txtTurn"
+            android:layout_marginTop="5dp"
+            android:scrollbarStyle="outsideInset"
+            android:scrollbars="horizontal|vertical">
 
-        <HorizontalScrollView
-            android:id="@+id/horizontalView"
-            android:layout_height="wrap_content"
-            android:scrollbars="horizontal|vertical"
-            android:layout_width="wrap_content"
-            android:layout_marginTop="5dp">
+            <HorizontalScrollView
+                android:id="@+id/horizontalView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:scrollbars="horizontal|vertical">
 
-            <TableLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/tlBoard" >
-            </TableLayout>
-        </HorizontalScrollView>
-    </ScrollView>
+                <TableLayout
+                    android:id="@+id/tlBoard"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"></TableLayout>
+            </HorizontalScrollView>
+        </ScrollView>
+
+    <ImageView
+        android:id="@+id/imgZoomOut"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="30dp"
+        android:src="@drawable/zoom_out" />
+
+    <ImageView
+        android:id="@+id/imgZoomIn"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="30dp"
+        android:src="@drawable/zoom_in" />
 
 </RelativeLayout>

@@ -10,20 +10,27 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/x"
-        android:layout_alignParentLeft="true"/>
+        android:layout_alignParentTop="true"/>
 
     <ImageView
-        android:id="@+id/imgPlayOnline"
+        android:id="@+id/imgPlayOnlineRandom"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/o"
-        android:layout_toRightOf="@+id/imgPlayOfflineFriend"/>
+        android:src="@drawable/online_random_game"
+        android:layout_below="@+id/imgPlayOfflineFriend"/>
+
+    <ImageView
+        android:id="@+id/imgPlayOnlineFriend"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/online_game_with_friend"
+        android:layout_below="@+id/imgPlayOnlineRandom"/>
 
     <ImageView
         android:id="@+id/imgPlayOfflineComputer"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/profile"
-        android:layout_toRightOf="@+id/imgPlayOnline"/>
+        android:layout_below="@+id/imgPlayOnlineFriend"/>
 
 </RelativeLayout>

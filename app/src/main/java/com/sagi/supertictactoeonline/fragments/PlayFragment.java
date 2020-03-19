@@ -47,6 +47,11 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private OnFragmentInteractionListener mListener;
     private User otherPlayer;
     private boolean isGameStarted = false;
+    private boolean isOtherPlayerLeft = false;
+    private ImageView imgZoomOut, imgZoomIn;
+
+    public PlayFragment() {
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -60,8 +65,41 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
         loadBundle();
         boardSize = game.getBoardSize();
-        tlBoard = view.findViewById(R.id.tlBoard);
+        loadViews(view);
         initialBoard();
+        dialog = new Dialog(getContext());
+    }
+
+    private void loadViews(View view) {
+        tlBoard = view.findViewById(R.id.tlBoard);
+        imgZoomIn = view.findViewById(R.id.imgZoomIn);
+        imgZoomIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zoom(true);
+            }
+        });
+        imgZoomOut = view.findViewById(R.id.imgZoomOut);
+        imgZoomOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zoom(false);
+            }
+        });
+    }
+
+    private void zoom(boolean isIn) {
+        ImageView temp;
+        temp = tlBoard.findViewById(0);
+        int size = isIn ? 20 : -20;
+        size += temp.getWidth();
+        if ((isIn && size >= 140) || (!isIn && size <= 60))
+            return;
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(size, size);
+        for (int i = 0; i < boardSize * boardSize; i++) {
+            temp = tlBoard.findViewById(i);
+            temp.setLayoutParams(layoutParams);
+        }
     }
 
     public static PlayFragment newInstance(Constants.MODE mode, OnlineGame game, int level) {
@@ -78,11 +116,12 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         Bundle bundle = getArguments();
         mode = (Constants.MODE) bundle.getSerializable(MODE);
         game = (OnlineGame) bundle.getSerializable(GAME);
-        if (game == null)
+        if (game == null) {
             if (mode == Constants.MODE.OFFLINE_FRIEND)
                 game = new Game(14);
             else game = new ComputerGame(14);
-        else {
+            isGameStarted = true;
+        } else {
             if (!((OnlineGame) game).getEmailPlayer1().equals("") && !((OnlineGame) game).getEmailPlayer2().equals(""))
                 isGameStarted = true;
             isX = ((OnlineGame) game).getEmailPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getEmail());
@@ -93,16 +132,12 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     }
 
     private void initialBoard() {
+        int pixels = screenWidth();
         for (int i = 0; i < boardSize; i++) {
             TableRow tableRow = new TableRow(getContext());
-
             for (int j = 0; j < boardSize; j++) {
                 final ImageView imgSign = new ImageView(getContext());
                 imgSign.setBackgroundResource(R.drawable.empty_cell);
-//                imgSign.setBackgroundColor(Color.WHITE);
-                WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-                Display display = wm.getDefaultDisplay();
-                int pixels = display.getWidth();
                 imgSign.setLayoutParams(new TableRow.LayoutParams(pixels / boardSize, pixels / boardSize));
                 imgSign.setId(i * boardSize + j);
                 imgSign.setOnClickListener(this);
@@ -110,6 +145,12 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             }
             tlBoard.addView(tableRow);
         }
+    }
+
+    private int screenWidth() {
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        return display.getWidth();
     }
 
     @Override
@@ -154,19 +195,28 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         else
             imgSign.setImageResource(R.drawable.o);
         if (game.isOver())
-            win(false);
+            win();
         imgLastTurn = imgSign;
     }
 
-    private void win(final boolean isOtherPlayerLeft) {
-        final Dialog dialog = new Dialog(getContext());
+    private void win() {
+        if (!dialog.isShowing()) {
+            initialWinDialog();
+            dialog.show();
+        }
+    }
+
+    private Dialog dialog;
+    private TextView txtRematch;
+
+    private void initialWinDialog() {
         dialog.setContentView(R.layout.dialog_win);
         TextView txtTitleWin = dialog.findViewById(R.id.txtTitleWin);
         txtTitleWin.setText(getWinnerName());
-        if (game instanceof OnlineGame) {
+        if (game instanceof OnlineGame && isX) {
             mListener.updateScore(SharedPreferencesHelper.getInstance(getContext()).getUser(), otherPlayer, !((OnlineGame) game).isXTurn());
         }
-        TextView txtRematch = dialog.findViewById(R.id.txtRematch);
+        txtRematch = dialog.findViewById(R.id.txtRematch);
         if (isOtherPlayerLeft)
             txtRematch.setVisibility(View.INVISIBLE);
         else
@@ -174,6 +224,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 @Override
                 public void onClick(View v) {
                     game.setXTurn(true);
+                    isX = !isX;
                     game.setOver(false);
                     game.initialSigns();
                     if (mListener != null && mode == Constants.MODE.ONLINE) {
@@ -190,18 +241,19 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
                 if (mListener != null) {
-                    String key="";
-                    if(game instanceof OnlineGame){
+                    String key = "";
+                    if (game instanceof OnlineGame) {
                         key = ((OnlineGame) game).getKeyGame();
-                        ((OnlineGame) game).setPlayer1Connected(false);
-                        ((OnlineGame) game).setPlayer2Connected(false);
+                        if (isX)
+                            ((OnlineGame) game).setPlayer1Connected(false);
+                        else
+                            ((OnlineGame) game).setPlayer2Connected(false);
                     }
                     mListener.leaveGame(key, isX, mode, isOtherPlayerLeft);
                 }
                 dialog.cancel();
             }
         });
-        dialog.show();
     }
 
     private String getWinnerName() {
@@ -217,7 +269,8 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (mode == Constants.MODE.ONLINE)
                 if (!isX)
                     winner = "You";
-                else winner = otherPlayer.getFirstName() + " " + otherPlayer.getLastName();            else
+                else winner = otherPlayer.getFirstName() + " " + otherPlayer.getLastName();
+            else
                 winner = "O";
         }
         return winner;
@@ -243,6 +296,13 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     }
 
     @Override
+    public void onStop() {
+        if (game instanceof OnlineGame)
+            mListener.leaveGame(((OnlineGame) game).getKeyGame(), isX, mode, isOtherPlayerLeft);
+        super.onStop();
+    }
+
+    @Override
     public void updateGameChanges(OnlineGame game) {
         ((OnlineGame) this.game).setEmailPlayer2(game.getEmailPlayer2());
         ((OnlineGame) this.game).setPlayer2Connected(game.isPlayer2Connected());
@@ -261,10 +321,11 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (((OnlineGame) game).getLastMoveId() != -1) {
                 Toast.makeText(getContext(), "Your opponent has left the game", Toast.LENGTH_SHORT).show();
                 game.setXTurn(isX);
-                if(!((OnlineGame)game).isPlayer1Connected() || !((OnlineGame)game).isPlayer2Connected())
-                    return;
-                win(true);
+                isOtherPlayerLeft = true;
+                win();
             }
+            if (txtRematch != null)
+                txtRematch.setVisibility(View.INVISIBLE);
         }
     }
 
