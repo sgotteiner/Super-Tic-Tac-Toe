@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     OnlineGame game = dataSnapshot.getValue(OnlineGame.class);
                     if (game != null)
-                        if (!game.isPlayer1Connected() || !game.isPlayer2Connected())
+                        if (!game.isPlayer1Connected() && !game.isPlayer2Connected())
                             deleteGame(keyGame, isRandom);
                 }
 
