@@ -1,11 +1,16 @@
 package com.sagi.supertictactoeonline.activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -26,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.sagi.supertictactoeonline.BuildConfig;
 import com.sagi.supertictactoeonline.R;
 import com.sagi.supertictactoeonline.entities.OnlineGame;
 import com.sagi.supertictactoeonline.entities.User;
@@ -66,9 +72,6 @@ public class MainActivity extends AppCompatActivity implements
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
-        myRef = FirebaseDatabase.getInstance().getReference();
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -78,8 +81,34 @@ public class MainActivity extends AppCompatActivity implements
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mNavigationView.setNavigationItemSelectedListener(this);
 
-        fragment = new HomeFragment();
-        showFragment(fragment);
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+        myRef = FirebaseDatabase.getInstance().getReference();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            String key = intent.getDataString();
+            if (key == null)
+                showHomePage();
+            else
+                openGame(key.split("=")[1]);
+        }
+    }
+
+    private void openGame(String key) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(FireBaseConstant.FRIENDS_GAMES_TABLE)
+                .child(key).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                OnlineGame game = dataSnapshot.getValue(OnlineGame.class);
+                if (game != null)
+                    joinGame(game, false);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void drawerListener(final DrawerLayout drawer) {
@@ -135,9 +164,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void showFragment(Fragment fragment) {
-        getSupportFragmentManager().
-                beginTransaction().
-                replace(R.id.frameLayoutContainerMain, fragment)
+        this.fragment = fragment;
+        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerMain, fragment)
                 .commitAllowingStateLoss();
     }
 
@@ -145,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements
         updateIsUserActiveInApp(false);
         SharedPreferencesHelper.getInstance(this).resetSharedPreferences();
         Intent intent = new Intent(this, RegisterLoginActivity.class);
+        intent.putExtra("isSignOut", true);
         startActivity(intent);
         finish();
     }
@@ -223,27 +252,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void updateScore(User player1, User player2, boolean xTurn) {
-        int rank1 = player1.getRank(), rank2 = player2.getRank();
-        int difScore = (rank1 - rank2) / 50;
-        int firstWin = 8 - difScore, secondWin = 8 + difScore;
-        firstWin = firstWin < 2 ? 2 : firstWin;
-        secondWin = secondWin < 2 ? 2 : secondWin;
-        if (xTurn) {
-            rank1 += firstWin;
-            rank2 -= firstWin;
-        } else {
-            rank1 -= secondWin;
-            rank2 += secondWin;
-        }
-        rank1 = rank1 < 0 ? 0 : rank1;
-        rank2 = rank2 < 0 ? 0 : rank2;
-
-        if (SharedPreferencesHelper.getInstance(this).getUser().getEmail().equals(player1.getEmail())) {
-            SharedPreferencesHelper.getInstance(this).setRank(rank1);
-        } else SharedPreferencesHelper.getInstance(this).setRank(rank2);
-        myRef.child(USERS_TABLE).child(player1.textEmailForFirebase()).child("rank").setValue(rank1);
-        myRef.child(USERS_TABLE).child(player2.textEmailForFirebase()).child("rank").setValue(rank2);
+    public void updateScore(int rank1, int rank2, String email2) {
+        myRef.child(USERS_TABLE).child(SharedPreferencesHelper.getInstance(this).getUser().textEmailForFirebase()).child("rank").setValue(rank1);
+        myRef.child(USERS_TABLE).child(email2).child("rank").setValue(rank2);
     }
 
     @Override
@@ -312,17 +323,16 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void showHomePage() {
-        fragment = new HomeFragment();
-        showFragment(fragment);
+        showFragment(new HomeFragment());
     }
 
     @Override
-    public void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom) {
-        showFragment(PlayFragment.newInstance(mode, game, level, isRandom));
+    public void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom, long startTimeMillis) {
+        showFragment(PlayFragment.newInstance(mode, game, level, isRandom, startTimeMillis));
     }
 
     @Override
-    public void findGame() {
+    public void findGame(final long startTimeMillis) {
         final String[] key = new String[1];
         myRef.child(FireBaseConstant.GAMES_TABLE).child(FireBaseConstant.RANDOM_GAMES_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -331,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements
                 OnlineGame game;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     game = snapshot.getValue(OnlineGame.class);
-                    if (!game.isPlayer2Connected()) {
+                    if (!game.isPlayer2Connected() && game.getStartTimeMillis() == startTimeMillis) {
                         joinGame(game, true);
                         isFound = true;
                         break;
@@ -339,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 if (!isFound) {
                     key[0] = myRef.child(FireBaseConstant.GAMES_TABLE).push().getKey();
-                    createGame(SharedPreferencesHelper.getInstance(MainActivity.this).getUser(), key[0], true);
+                    createGame(SharedPreferencesHelper.getInstance(MainActivity.this).getUser(), key[0], true, startTimeMillis);
                 }
             }
 
@@ -357,16 +367,16 @@ public class MainActivity extends AppCompatActivity implements
         String gameTable = gameTable(isRandom);
         myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("emailPlayer2").setValue(email);
         myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("player2Connected").setValue(true);
-        iHomePage.setGame(game, isRandom);
+        showPlayFragment(Constants.MODE.ONLINE, game, 0, isRandom, game.getStartTimeMillis());
         myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).child("player1Connected").addValueEventListener(valueEventListenerConnection);
     }
 
-    private void createGame(User user, String key, boolean isRandom) {
+    private void createGame(User user, String key, boolean isRandom, long startTimeMillis) {
         OnlineGame game = new OnlineGame(14, key,
-                user.getEmail());
+                user.getEmail(), startTimeMillis);
         String gameTable = gameTable(isRandom);
         myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).setValue(game);
-        iHomePage.setGame(game, isRandom);
+        showPlayFragment(Constants.MODE.ONLINE, game, 0, isRandom, startTimeMillis);
         myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).child("player2Connected").addValueEventListener(valueEventListenerConnection);
     }
 
@@ -384,9 +394,37 @@ public class MainActivity extends AppCompatActivity implements
     };
 
     @Override
-    public void sendInvitation(User user, String email) {
+    public void sendInvitation(User user, String email, boolean isWhatsapp, long startTimeMillis) {
         String key = Utils.textEmailForFirebase(email) + "/" + user.textEmailForFirebase();
-        createGame(user, key, false);
+        createGame(user, key, false, startTimeMillis);
+        if (isWhatsapp)
+            sendWhatsappLink(key);
+    }
+
+    private void sendWhatsappLink(String key) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setPackage("com.whatsapp");
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Super Tic Tac Toe Online");
+        String strShareMessage = "Super Tic Tac Toe\nJoin " + SharedPreferencesHelper.getInstance(this).getUser().getFirstName() + " here\n";
+        strShareMessage += "www.supertictactoeonline.com/play=" + key;
+        strShareMessage += "\n\nor if you haven't downloaded the app yet you can do it here\n" +
+                "https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID + "\n\n";
+        Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.super_tic_tac_toe_online_icon);
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), logo, "title", null);
+        if (path != null) {
+            Uri logoUri = Uri.parse(path);
+            intent.setType("image/png");
+            intent.putExtra(Intent.EXTRA_STREAM, logoUri);
+        }
+        intent.putExtra(Intent.EXTRA_TEXT, strShareMessage);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            startActivity(Intent.createChooser(intent, "whatsapp"));
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

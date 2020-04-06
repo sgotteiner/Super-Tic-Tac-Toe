@@ -2,7 +2,6 @@ package com.sagi.supertictactoeonline.fragments;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,10 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sagi.supertictactoeonline.R;
 import com.sagi.supertictactoeonline.adapters.AdapterUser;
@@ -34,6 +36,8 @@ public class HomeFragment extends Fragment implements IHomePage {
 
     private OnFragmentInteractionListener mListener;
     private ImageView imgPlayOfflineFriend, imgPlayOnlineRandom, imgPlayOnlineFriend, imgPlayOfflineComputer;
+    private Spinner spnTimeLimit;
+    public static final String[] TIME_LIMIT = new String[]{"none", "1 minute", "3 minutes", "5 minutes"};
 
     public HomeFragment() {
     }
@@ -51,25 +55,29 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOnlineRandom = view.findViewById(R.id.imgPlayOnlineRandom);
         imgPlayOnlineFriend = view.findViewById(R.id.imgPlayOnlineFriend);
         imgPlayOfflineComputer = view.findViewById(R.id.imgPlayOfflineComputer);
+        spnTimeLimit = view.findViewById(R.id.spnTimeLimit);
+        ArrayAdapter<String> adapterTimeLimit = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, TIME_LIMIT);
+        adapterTimeLimit.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spnTimeLimit.setAdapter(adapterTimeLimit);
+        spnTimeLimit.setSelection(SharedPreferencesHelper.getInstance(getContext()).getStartTime());
     }
 
     private void loadListeners() {
         imgPlayOfflineFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.showPlayFragment(Constants.MODE.OFFLINE_FRIEND, null, 0, false);
+                mListener.showPlayFragment(Constants.MODE.OFFLINE_FRIEND, null, 0, false, startTimeMillis());
             }
         });
         imgPlayOnlineRandom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.findGame();
+                mListener.findGame(startTimeMillis());
             }
         });
         imgPlayOnlineFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //sendWhatsappLink();
                 initialOnlineFriendDialog();
                 dialogOnlineFriendGame.show();
             }
@@ -77,37 +85,46 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOfflineComputer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.showPlayFragment(Constants.MODE.OFFLINE_COMPUTER, null, 2, false);
+                mListener.showPlayFragment(Constants.MODE.OFFLINE_COMPUTER, null, 2, false, 0);
+            }
+        });
+        spnTimeLimit.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SharedPreferencesHelper.getInstance(getContext()).setStartTime(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
     }
 
-    private void sendWhatsappLink() {
-        try {
-            Intent i = new Intent(Intent.ACTION_SEND);
-            i.setType("text/plain");
-//                    i.putExtra(Intent.EXTRA_SUBJECT, "My app name");
-            String strShareMessage = "Super Tic Tac Toe\nLet me recommend you this application\n\n";
-            strShareMessage = strShareMessage + "https://play.google.com/store/apps/details?id=" + getContext().getApplicationContext().getPackageName();
-//                    Uri screenshotUri = Uri.parse("android.resource://packagename/drawable/x");
-//                    i.setType("image/png");
-//                    i.putExtra(Intent.EXTRA_STREAM, screenshotUri);
-            i.putExtra(Intent.EXTRA_TEXT, strShareMessage);
-            startActivity(Intent.createChooser(i, "whatsapp"));
-        } catch (Exception e) {
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+    private long startTimeMillis() {
+        switch ((String)spnTimeLimit.getSelectedItem()){
+            case "1 minute":
+                return 60000;
+            case "3 minute":
+                return 180000;
+            case "5 minute":
+                return 300000;
         }
+        return 0;
     }
 
     private Dialog dialogOnlineFriendGame;
     private TextView txtJoin;
+    private CheckBox checkboxWhatsappInvitation;
     private RecyclerView recyclerJoin, recyclerInvite;
     private AdapterUser adapterJoin, adapterInvite;
     private ArrayList<User> arrJoin = new ArrayList<>(), arrFriends = new ArrayList<>();
+
     private void initialOnlineFriendDialog() {
         dialogOnlineFriendGame = new Dialog(getContext());
         dialogOnlineFriendGame.setContentView(R.layout.dialog_online_friend_game);
         txtJoin = dialogOnlineFriendGame.findViewById(R.id.txtJoin);
+        checkboxWhatsappInvitation = dialogOnlineFriendGame.findViewById(R.id.checkboxWhatsappInvitation);
         txtJoin.setVisibility(View.GONE);
         adapterJoin = new AdapterUser(arrJoin, getContext(), new AdapterUser.CallbackAdapterUser() {
             @Override
@@ -124,7 +141,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         adapterInvite = new AdapterUser(arrFriends, getContext(), new AdapterUser.CallbackAdapterUser() {
             @Override
             public void onPick(User user, boolean isJoin) {
-                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), user.getEmail());
+                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), user.getEmail(), checkboxWhatsappInvitation.isChecked(), startTimeMillis());
                 dialogOnlineFriendGame.dismiss();
             }
         }, false);
@@ -138,7 +155,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), edtSearch.getText().toString());
+                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), edtSearch.getText().toString(), true, startTimeMillis());
             }
         });
         mListener.loadInvitations();
@@ -185,7 +202,7 @@ public class HomeFragment extends Fragment implements IHomePage {
 
     @Override
     public void setGame(OnlineGame game, boolean isRandom) {
-        mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0, isRandom);
+        mListener.showPlayFragment(Constants.MODE.ONLINE, game, 0, isRandom, startTimeMillis());
     }
 
     @Override
@@ -198,7 +215,7 @@ public class HomeFragment extends Fragment implements IHomePage {
     private void updateFriends() {
         for (int i = 0; i < arrJoin.size(); i++) {
             for (int j = 0; j < arrFriends.size(); j++) {
-                if(arrJoin.get(i).getEmail().equals(arrFriends.get(j).getEmail())){
+                if (arrJoin.get(i).getEmail().equals(arrFriends.get(j).getEmail())) {
                     arrFriends.remove(i);
                 }
             }
@@ -219,13 +236,13 @@ public class HomeFragment extends Fragment implements IHomePage {
 
     public interface OnFragmentInteractionListener {
 
-        void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom);
+        void showPlayFragment(Constants.MODE mode, OnlineGame game, int level, boolean isRandom, long startTimeMillis);
 
-        void findGame();
+        void findGame(long l);
 
         void registerEventFromMain(IHomePage iHomePage);
 
-        void sendInvitation(User user, String email);
+        void sendInvitation(User user, String email, boolean isWhatsapp, long startTimeMillis);
 
         void loadFriends();
 

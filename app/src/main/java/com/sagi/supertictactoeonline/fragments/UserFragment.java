@@ -2,7 +2,6 @@ package com.sagi.supertictactoeonline.fragments;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -27,6 +25,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.sagi.supertictactoeonline.R;
+import com.sagi.supertictactoeonline.activities.MainActivity;
 import com.sagi.supertictactoeonline.entities.User;
 import com.sagi.supertictactoeonline.interfaces.IUserFragmentGetEventFromMain;
 import com.sagi.supertictactoeonline.utilities.DownloadImage;
@@ -36,11 +35,6 @@ import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
 import com.sagi.supertictactoeonline.utilities.UploadImage;
 import com.sagi.supertictactoeonline.utilities.Utils;
 import com.squareup.picasso.Picasso;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
 
 public class UserFragment extends Fragment implements IUserFragmentGetEventFromMain {
 
@@ -52,8 +46,7 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     private Bitmap bitmapProfile = null;
     private User user;
     private EditText edtFName, edtLName;
-    private TextView txtBirthday, txtEmail, txtRank;
-    private long dateBirthDay = -1;
+    private TextView txtEmail, txtRank;
     private ProgressDialog progressDialogDownload;
     private ProgressDialog progressDialogUpload;
 
@@ -92,7 +85,6 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         super.onViewCreated(view, savedInstanceState);
 
         user = SharedPreferencesHelper.getInstance(getContext()).getUser();
-        dateBirthDay = user.getBirthDay();
         loadAllFields(view);
         loadImageProfile();
         setListeners();
@@ -149,7 +141,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
             @Override
             public void onSuccess(Uri uri) {
                 stopProgressBar();
-                Picasso.with(getContext()).load(uri).fit().into(imgProfilePicture);
+                if (getContext() != null)
+                    Picasso.with(getContext()).load(uri).fit().into(imgProfilePicture);
             }
 
             @Override
@@ -162,35 +155,19 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     private void loadAllFields(View view) {
         edtFName = view.findViewById(R.id.edtFName);
         edtFName.setText(getUserFirstNameWithUpperCase(user.getFirstName()));
-        edtLName = view.findViewById(R.id.edtLName);
-        edtLName.setText(user.getLastName());
         txtEmail = view.findViewById(R.id.txtEmail);
         txtEmail.setText(user.getEmail());
         txtRank = view.findViewById(R.id.txtRank);
         txtRank.setText(String.valueOf(user.getRank()));
-        txtBirthday = view.findViewById(R.id.txtBDay);
-        txtBirthday.setText(getStringDateFromLong(user.getBirthDay()));
-        txtBirthday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                        dateBirthDay = Utils.getTimeStampFromDate(year, month, day);
-                    }
-                }, Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-                datePickerDialog.show();
-            }
-        });
         imgProfilePicture = view.findViewById(R.id.imgProfilePicture);
         btnSave = view.findViewById(R.id.btnSave);
     }
 
-    private void setListeners(){
+    private void setListeners() {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!Utils.isValid(user.getEmail(), edtFName.getText().toString(), edtLName.getText().toString(), dateBirthDay, getContext()))
+                if (!Utils.isValid(user.getEmail(), edtFName.getText().toString(), edtLName.getText().toString(), 0, getContext()))
                     return;
 
                 updateEntityUser();
@@ -223,16 +200,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         return Utils.geteFirstLettersUpperCase(firstName);
     }
 
-    private String getStringDateFromLong(long date) {
-        DateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-        String dateAsString = f.format(date);
-        return dateAsString;
-    }
-
     private void updateEntityUser() {
         user.setFirstName(edtFName.getText().toString().toLowerCase());
-        user.setLastName(edtLName.getText().toString());
-        user.setBirthDay(dateBirthDay);
         SharedPreferencesHelper.getInstance(getContext()).setUser(user);
     }
 

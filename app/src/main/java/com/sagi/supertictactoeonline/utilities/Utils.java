@@ -16,51 +16,48 @@ import java.util.Date;
 public class Utils {
 
     public static long getTimeStampFromDate(int year, int month, int day) {
-        Calendar calendar= Calendar.getInstance();
-        calendar.set(Calendar.YEAR,year);
-        calendar.set(Calendar.MONTH,month);
-        calendar.set(Calendar.DAY_OF_MONTH,day);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
         return calendar.getTimeInMillis();
     }
 
-    public static String getDateAndTimeFromTimeStamp(long timeStampDate ) {
+    public static String getDateAndTimeFromTimeStamp(long timeStampDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         Date netDate = (new Date(timeStampDate));
         return sdf.format(netDate);
     }
 
-    public static String getTimeFromTimeStamp(long timeStampDate ) {
+    public static String getTimeFromTimeStamp(long timeStampDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         Date netDate = (new Date(timeStampDate));
         return sdf.format(netDate);
     }
 
-    public static String getDateFromTimeStamp(long timeStampDate ) {
+    public static String getDateFromTimeStamp(long timeStampDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date netDate = (new Date(timeStampDate));
         return sdf.format(netDate);
     }
-    public static long getTimeStampFromDateAndTime(long timeStampDate,int hour, int minuets) {
-        Calendar calendar= Calendar.getInstance();
+
+    public static long getTimeStampFromDateAndTime(long timeStampDate, int hour, int minuets) {
+        Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(timeStampDate);
-        calendar.set(Calendar.HOUR,hour);
-        calendar.set(Calendar.MINUTE,minuets);
-        calendar.set(Calendar.SECOND,0);
+        calendar.set(Calendar.HOUR, hour);
+        calendar.set(Calendar.MINUTE, minuets);
+        calendar.set(Calendar.SECOND, 0);
         return calendar.getTimeInMillis();
     }
 
     public static boolean isValid(String email, String fName, String lName, long dateBirthDay, Context context) {
 
 
-        if ( email.equals("") || fName.equals("") || lName.equals("")) {
+        if (email.equals("") || fName.equals("") || lName.equals("")) {
             Toast.makeText(context, "must fill all fields", Toast.LENGTH_SHORT).show();
             return false;
-        } else   if (dateBirthDay == -1) {
-            Toast.makeText(context, "must choose a birth date", Toast.LENGTH_SHORT).show();
-            return false;
-        } else {
+        } else
             return true;
-        }
     }
 
     public static boolean isValid(String email, String pass, String fName, String lName, long dateBirthDay, Context context) {
@@ -73,9 +70,6 @@ public class Utils {
             return false;
         } else if (pass.length() < 6) {
             Toast.makeText(context, "Pass must have at least 6 characters", Toast.LENGTH_SHORT).show();
-            return false;
-        } else if (dateBirthDay == -1) {
-            Toast.makeText(context, "must choose a birth date", Toast.LENGTH_SHORT).show();
             return false;
         } else {
             return true;
@@ -99,7 +93,7 @@ public class Utils {
         return emailFirebase;
     }
 
-    public static String geteFirstLettersUpperCase(String text ) {
+    public static String geteFirstLettersUpperCase(String text) {
         return text.substring(0, 1).toUpperCase() + text.substring(1, text.length());
     }
 

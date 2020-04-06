@@ -7,9 +7,7 @@ import java.io.Serializable;
 public class User implements Serializable {
 
     private String firstName;
-    private String lastName;
     private String email;
-    private long birthDay;
     private long lastTimeSeen;
     private int rank;
 
@@ -33,11 +31,9 @@ public class User implements Serializable {
        return  Utils.textEmailForFirebase(email);
     }
 
-    public User(String firstName, String lastName, String email, long birthDay, long lastTimeSeen, int rank) {
+    public User(String firstName, String email, long lastTimeSeen, int rank) {
         this.firstName = firstName;
-        this.lastName = lastName;
         this.email = email;
-        this.birthDay = birthDay;
         this.lastTimeSeen = lastTimeSeen;
         this.rank = rank;
     }
@@ -53,28 +49,12 @@ public class User implements Serializable {
         this.firstName = firstName;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public long getBirthDay() {
-        return birthDay;
-    }
-
-    public void setBirthDay(long birthDay) {
-        this.birthDay = birthDay;
     }
 
     public long getLastTimeSeen() {

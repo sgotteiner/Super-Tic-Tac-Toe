@@ -58,43 +58,10 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/r2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/r1">
-
-            <TextView
-                android:id="@+id/txtHeaderLastName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"
-                android:text="Last Name"
-                android:textColor="@color/colorText"
-                android:textSize="@dimen/text_view_header" />
-
-            <EditText
-                android:id="@+id/edtLName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_marginTop="20dp"
-                android:layout_toRightOf="@+id/txtHeaderLastName"
-                android:gravity="right|center_vertical"
-                android:singleLine="true"
-                android:text="Hadad"
-                android:textColor="@color/colorWhite"
-                android:textSize="@dimen/text_view_header" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
             android:id="@+id/r3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/r2">
+            android:layout_below="@id/r1">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -149,38 +116,10 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/r5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/r4">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"
-                android:text="Birthday"
-                android:textColor="@color/colorText"
-                android:textSize="@dimen/text_view_header" />
-
-            <TextView
-                android:id="@+id/txtBDay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_marginTop="20dp"
-                android:text="22/12/2018"
-                android:textColor="@color/colorWhite"
-                android:textSize="@dimen/text_view_header" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
             android:id="@+id/linearLayoutImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/r5"
+            android:layout_below="@id/r4"
             android:layout_marginVertical="20dp"
             android:gravity="center">
 

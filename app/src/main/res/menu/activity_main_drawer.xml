@@ -9,9 +9,9 @@
             android:id="@+id/nav_home"
             android:title="home" />
 
-        <item
-            android:id="@+id/nav_history"
-            android:title="History" />
+<!--        <item-->
+<!--            android:id="@+id/nav_history"-->
+<!--            android:title="History" />-->
 
         <item
             android:id="@+id/nav_profile"
