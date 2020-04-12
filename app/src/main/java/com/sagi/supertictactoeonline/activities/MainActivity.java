@@ -186,14 +186,21 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void rematch(OnlineGame game) {
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(game.getKeyGame()).setValue(game);
+    public void rematch(final OnlineGame game, final boolean isRandom, final boolean isX) {
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(game.getKeyGame())
+                .setValue(game).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable(isRandom)).child(game.getKeyGame())
+                        .child(isX ? "player1Connected" : "player2Connected").setValue(true);
+            }
+        });
     }
 
     @Override
-    public void updateGameState(String key, int moveId, boolean isRandom) {
+    public void updateGameState(OnlineGame game, boolean isRandom) {
         String gameTable = gameTable(isRandom);
-        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(key).child("lastMoveId").setValue(moveId);
+        myRef.child(FireBaseConstant.GAMES_TABLE).child(gameTable).child(game.getKeyGame()).setValue(game);
     }
 
     private ValueEventListener valueEventListenerGame = new ValueEventListener() {
@@ -282,11 +289,14 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
+        if(iUserFragmentGetEventFromMain != null)
+            iUserFragmentGetEventFromMain.onBackPressedInActivity();
+        else if(iPlayFragmentUpdateGameChanges != null)
+            iPlayFragmentUpdateGameChanges.onBackPressedInActivity();
+        else if (drawer.isDrawerOpen(GravityCompat.START))
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        else
             super.onBackPressed();
-        }
     }
 
     @Override
@@ -383,8 +393,11 @@ public class MainActivity extends AppCompatActivity implements
     private ValueEventListener valueEventListenerConnection = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-            if (iPlayFragmentUpdateGameChanges != null)
-                iPlayFragmentUpdateGameChanges.onOtherPlayerConnectionEvent(dataSnapshot.getValue(boolean.class));
+            if (iPlayFragmentUpdateGameChanges != null) {
+                if (dataSnapshot != null)
+                    iPlayFragmentUpdateGameChanges.onOtherPlayerConnectionEvent(dataSnapshot.getValue(boolean.class));
+                else iPlayFragmentUpdateGameChanges.onOtherPlayerConnectionEvent(false);
+            }
         }
 
         @Override

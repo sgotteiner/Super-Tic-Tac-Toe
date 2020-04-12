@@ -56,8 +56,8 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOnlineFriend = view.findViewById(R.id.imgPlayOnlineFriend);
         imgPlayOfflineComputer = view.findViewById(R.id.imgPlayOfflineComputer);
         spnTimeLimit = view.findViewById(R.id.spnTimeLimit);
-        ArrayAdapter<String> adapterTimeLimit = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, TIME_LIMIT);
-        adapterTimeLimit.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapterTimeLimit = new ArrayAdapter<>(getContext(), R.layout.item_spinner, TIME_LIMIT);
+//        adapterTimeLimit.setDropDownViewResource(R.layout.item_spinner);
         spnTimeLimit.setAdapter(adapterTimeLimit);
         spnTimeLimit.setSelection(SharedPreferencesHelper.getInstance(getContext()).getStartTime());
     }

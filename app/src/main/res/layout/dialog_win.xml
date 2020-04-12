@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@color/colorBackground"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -13,9 +14,10 @@
             android:id="@+id/txtTitleWin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
             android:layout_centerInParent="true"
-            android:layout_marginTop="5dp" />
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorText" />
 
         <ImageView
             android:id="@+id/imgIconWin"
@@ -39,7 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="5dp"
-            android:text="Rematch" />
+            android:text="Rematch"
+            android:textColor="@color/colorText" />
 
         <TextView
             android:id="@+id/txtLeaveGame"
@@ -47,7 +50,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginRight="5dp"
-            android:text="Leave Game" />
+            android:text="Leave Game"
+            android:textColor="@color/colorText" />
     </RelativeLayout>
 
 </RelativeLayout>

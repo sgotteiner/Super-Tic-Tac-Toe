@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorBackground"
     tools:context=".fragments.HomeFragment">
 
     <TextView
@@ -10,30 +11,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginVertical="10dp"
-        android:text="Play Offline" />
+        android:layout_marginTop="60dp"
+        android:text="Play Offline"
+        android:textColor="@color/colorText"
+        android:textSize="@dimen/text_size" />
 
     <LinearLayout
         android:id="@+id/r1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/t1"
-        android:orientation="horizontal"
+        android:layout_marginTop="15dp"
         android:layoutDirection="ltr"
+        android:orientation="horizontal"
         android:weightSum="2">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="left"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:layout_gravity="left">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Play With a Friend" />
+                android:text="Play With a Friend"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_size" />
 
             <ImageView
                 android:id="@+id/imgPlayOfflineFriend"
@@ -41,29 +47,31 @@
                 android:layout_height="100dp"
                 android:layout_alignParentTop="true"
                 android:layout_marginVertical="5dp"
-                android:src="@drawable/x" />
+                android:src="@drawable/friends" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="right"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:layout_gravity="right">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Play With a Computer" />
+                android:text="Play With a Computer"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_size" />
 
             <ImageView
                 android:id="@+id/imgPlayOfflineComputer"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_below="@+id/imgPlayOnlineFriend"
-                android:src="@drawable/profile" />
+                android:src="@drawable/computer" />
 
         </LinearLayout>
 
@@ -75,30 +83,35 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/r1"
         android:layout_centerHorizontal="true"
-        android:layout_marginVertical="10dp"
-        android:text="Play Online" />
+        android:layout_marginTop="30dp"
+        android:text="Play Online"
+        android:textColor="@color/colorText"
+        android:textSize="@dimen/text_size" />
 
     <LinearLayout
         android:id="@+id/r2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/t2"
-        android:orientation="horizontal"
+        android:layout_marginTop="15dp"
         android:layoutDirection="ltr"
+        android:orientation="horizontal"
         android:weightSum="2">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="left"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:layout_gravity="left"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Random Player" />
+                android:text="Random Player"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_size" />
 
             <ImageView
                 android:id="@+id/imgPlayOnlineRandom"
@@ -113,15 +126,17 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="right"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:layout_gravity="right"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Invite or Join a Friend" />
+                android:text="Invite or Join a Friend"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/text_size" />
 
             <ImageView
                 android:id="@+id/imgPlayOnlineFriend"
@@ -139,21 +154,26 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/r2"
         android:layout_gravity="center_horizontal"
+        android:layout_marginVertical="15dp"
         android:gravity="center_horizontal"
-        android:layoutDirection="ltr"
-        android:layout_marginVertical="10dp">
+        android:layoutDirection="ltr">
 
         <TextView
             android:id="@+id/t3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Choose Time Limit:"/>
+            android:layout_centerVertical="true"
+            android:text="Choose Time Limit: "
+            android:textColor="@color/colorText"
+            android:textSize="@dimen/text_size" />
 
         <Spinner
             android:id="@+id/spnTimeLimit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/t3"/>
+            android:layout_toRightOf="@+id/t3"
+            android:background="@drawable/shape_editext"
+            android:popupBackground="@color/colorBackground" />
 
     </RelativeLayout>
 

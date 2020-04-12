@@ -144,7 +144,7 @@ public class RegisterLoginActivity extends AppCompatActivity
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             if (account != null)
-                goToMain(account, true);
+                goToMain(account, !getIntent().getBooleanExtra("isSignOut", false) && true);
         } catch (ApiException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }

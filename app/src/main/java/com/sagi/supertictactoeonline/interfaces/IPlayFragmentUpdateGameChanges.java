@@ -9,4 +9,6 @@ public interface IPlayFragmentUpdateGameChanges {
     void onOtherPlayerConnectionEvent(boolean isConneted);
 
     void setOtherPlayer(User user);
+
+    void onBackPressedInActivity();
 }

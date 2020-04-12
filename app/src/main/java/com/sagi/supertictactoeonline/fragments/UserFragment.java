@@ -25,7 +25,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.sagi.supertictactoeonline.R;
-import com.sagi.supertictactoeonline.activities.MainActivity;
 import com.sagi.supertictactoeonline.entities.User;
 import com.sagi.supertictactoeonline.interfaces.IUserFragmentGetEventFromMain;
 import com.sagi.supertictactoeonline.utilities.DownloadImage;
@@ -45,8 +44,7 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     private final int IMG_FROM_GALLERY = 2;
     private Bitmap bitmapProfile = null;
     private User user;
-    private EditText edtFName, edtLName;
-    private TextView txtEmail, txtRank;
+    private TextView txtEmail, txtRank, txtName;
     private ProgressDialog progressDialogDownload;
     private ProgressDialog progressDialogUpload;
 
@@ -153,8 +151,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     }
 
     private void loadAllFields(View view) {
-        edtFName = view.findViewById(R.id.edtFName);
-        edtFName.setText(getUserFirstNameWithUpperCase(user.getFirstName()));
+        txtName = view.findViewById(R.id.txtName);
+        txtName.setText(getUserFirstNameWithUpperCase(user.getFirstName()));
         txtEmail = view.findViewById(R.id.txtEmail);
         txtEmail.setText(user.getEmail());
         txtRank = view.findViewById(R.id.txtRank);
@@ -167,10 +165,6 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!Utils.isValid(user.getEmail(), edtFName.getText().toString(), edtLName.getText().toString(), 0, getContext()))
-                    return;
-
-                updateEntityUser();
                 if (bitmapProfile != null) {
                     showDialogUpload();
                     mListener.updateProfile(user);
@@ -198,11 +192,6 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
 
     private String getUserFirstNameWithUpperCase(String firstName) {
         return Utils.geteFirstLettersUpperCase(firstName);
-    }
-
-    private void updateEntityUser() {
-        user.setFirstName(edtFName.getText().toString().toLowerCase());
-        SharedPreferencesHelper.getInstance(getContext()).setUser(user);
     }
 
     @Override
@@ -239,7 +228,7 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
 
     @Override
     public void onBackPressedInActivity() {
-        btnSave.setBackgroundColor(Color.GREEN);
+        mListener.showHomePage();
     }
 
     @Override

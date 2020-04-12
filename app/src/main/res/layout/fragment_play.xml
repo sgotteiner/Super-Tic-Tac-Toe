@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#fff"
+    android:background="@color/colorBackground"
     tools:context=".fragments.PlayFragment">
 
     <LinearLayout
@@ -39,7 +39,8 @@
                     android:gravity="center_horizontal"
                     android:maxLines="2"
                     android:text="turn of x"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:textColor="@color/colorText"/>
 
                 <TextView
                     android:id="@+id/txtRankX"
@@ -49,7 +50,8 @@
                     android:layout_centerHorizontal="true"
                     android:layout_marginVertical="5dp"
                     android:text="\?\?\?"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:textColor="@color/colorText"/>
 
             </RelativeLayout>
 
@@ -60,8 +62,10 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginHorizontal="10dp"
-                android:background="@drawable/empty_cell"
-                android:textSize="15sp" />
+                android:background="@drawable/shape_editext"
+                android:textSize="25sp"
+                android:padding="3dp"
+                android:textColor="@color/colorText"/>
 
         </RelativeLayout>
 
@@ -88,7 +92,8 @@
                     android:maxLines="2"
                     android:text="turn of o"
                     android:textSize="15sp"
-                    app:autoSizeTextType="uniform" />
+                    app:autoSizeTextType="uniform"
+                    android:textColor="@color/colorText"/>
 
                 <TextView
                     android:id="@+id/txtRankO"
@@ -98,7 +103,8 @@
                     android:layout_centerHorizontal="true"
                     android:layout_marginVertical="5dp"
                     android:text="\?\?\?"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:textColor="@color/colorText"/>
 
             </RelativeLayout>
 
@@ -109,8 +115,10 @@
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
                 android:layout_marginHorizontal="10dp"
-                android:background="@drawable/empty_cell"
-                android:textSize="15sp" />
+                android:background="@drawable/shape_editext"
+                android:textSize="25sp"
+                android:padding="3dp"
+                android:textColor="@color/colorText"/>
 
         </RelativeLayout>
 
@@ -155,5 +163,15 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="30dp"
         android:src="@drawable/zoom_in" />
+
+    <ImageView
+        android:id="@+id/imgShowDialog"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="30dp"
+        android:src="@drawable/show_dialog"
+        android:visibility="gone"/>
 
 </RelativeLayout>

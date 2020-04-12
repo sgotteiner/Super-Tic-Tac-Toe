@@ -2,7 +2,6 @@ package com.sagi.supertictactoeonline.fragments;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.Display;
@@ -41,7 +40,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private static String LEVEL = "level";
     private static String IS_RANDOM = "is random";
     private static String START_TIME_MILLIS = "start time millis";
-    private boolean isX, isRandom;
+    private boolean isX, isCreator, isRandom;
     private Constants.MODE mode;
     private Game game;
     int boardSize;
@@ -50,14 +49,14 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private TableLayout tlBoard;
     private TextView txtTurnX, txtTurnO, txtTimeX, txtTimeO, txtRankX, txtRankO;
     private CountDownTimer countDownTimerX, countDownTimerO;
-    private long timeLeftX, timeLeftO;
+    private long timeLeftX, timeLeftO, startTimeMillis;
     private boolean isPauseX = true, isPauseO = true;
     private ImageView imgLastTurn;
     private OnFragmentInteractionListener mListener;
     private User otherPlayer;
     private boolean isGameStarted = false;
     private boolean isOtherPlayerLeft = false;
-    private ImageView imgZoomOut, imgZoomIn;
+    private ImageView imgZoomOut, imgZoomIn, imgShowDialog;
 
     public PlayFragment() {
     }
@@ -87,10 +86,20 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 if (isX) {
                     txtTurnX.setText(user.getFirstName());
                     txtRankX.setText(String.valueOf(user.getRank()));
-                    txtTurnO.setText("Coming");
+                    if (otherPlayer == null)
+                        txtTurnO.setText("Coming");
+                    else {
+                        txtTurnO.setText(otherPlayer.getFirstName());
+                        txtRankO.setText(String.valueOf(otherPlayer.getRank()));
+                    }
                 } else {
-                    txtTurnX.setText("Coming");
-                    txtTurnO.setText(String.valueOf(user.getFirstName()));
+                    if (otherPlayer == null)
+                        txtTurnX.setText("Coming");
+                    else {
+                        txtTurnX.setText(otherPlayer.getFirstName());
+                        txtRankX.setText(String.valueOf(otherPlayer.getRank()));
+                    }
+                    txtTurnO.setText(user.getFirstName());
                     txtRankO.setText(String.valueOf(user.getRank()));
                 }
             } else {
@@ -102,9 +111,9 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 txtRankO.setVisibility(View.INVISIBLE);
             }
 
-            if (timeLeftX != 0) {
-                updateText(timeLeftX, true);
-                updateText(timeLeftX, false);
+            if (startTimeMillis != 0) {
+                updateText(startTimeMillis, true);
+                updateText(startTimeMillis, false);
             } else {
                 txtTimeX.setVisibility(View.INVISIBLE);
                 txtTimeO.setVisibility(View.INVISIBLE);
@@ -202,6 +211,14 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 zoom(false);
             }
         });
+        imgShowDialog = view.findViewById(R.id.imgShowDialog);
+        imgShowDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dialog != null)
+                    dialog.show();
+            }
+        });
     }
 
     private void zoom(boolean isIn) {
@@ -237,13 +254,13 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         if (game == null) {
             if (mode == Constants.MODE.OFFLINE_FRIEND) {
                 game = new Game(14);
-                timeLeftX = timeLeftO = bundle.getLong(START_TIME_MILLIS);
+                startTimeMillis = timeLeftX = timeLeftO = bundle.getLong(START_TIME_MILLIS);
             } else game = new ComputerGame(14);
             isGameStarted = true;
         } else {
-            isX = ((OnlineGame) game).getEmailPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getEmail());
+            isX = isCreator = ((OnlineGame) game).getEmailPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getEmail());
             isRandom = bundle.getBoolean(IS_RANDOM);
-            timeLeftX = timeLeftO = bundle.getLong(START_TIME_MILLIS);
+            startTimeMillis = timeLeftX = timeLeftO = bundle.getLong(START_TIME_MILLIS);
             mListener.listenToGame(((OnlineGame) game).getKeyGame(), isRandom);
         }
         game.initialSigns();
@@ -297,7 +314,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                     switchClock();
             }
             if (mode == Constants.MODE.ONLINE)
-                mListener.updateGameState(((OnlineGame) game).getKeyGame(), id, isRandom);
+                mListener.updateGameState((OnlineGame) game, isRandom);
         } else Toast.makeText(getContext(), "can't", Toast.LENGTH_SHORT).show();
     }
 
@@ -320,14 +337,13 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private void changeGUI(int i, int j) {
         ImageView imgSign = tlBoard.findViewById(i * boardSize + j);
         if (imgLastTurn != null)
-            imgLastTurn.setBackgroundColor(Color.WHITE);
-        imgSign.setBackgroundColor(Color.YELLOW);
-
-        if (!game.isXTurn())
+            imgLastTurn.setBackgroundColor(getResources().getColor(R.color.colorBackground));
+        imgSign.setBackgroundColor(getResources().getColor(R.color.colorShape));
+        if (!game.isXTurn()) {
             imgSign.setImageResource(R.drawable.x);
-        else
+        } else {
             imgSign.setImageResource(R.drawable.o);
-
+        }
         if (game.isOver()) {
             win();
         }
@@ -338,6 +354,8 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         isPauseX = isPauseO = true;
         initialWinDialog();
         dialog.show();
+        imgShowDialog.setVisibility(View.VISIBLE);
+        isGameStarted = false;
     }
 
     private Dialog dialog;
@@ -349,8 +367,10 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         dialog.setContentView(R.layout.dialog_win);
         TextView txtTitleWin = dialog.findViewById(R.id.txtTitleWin);
         txtTitleWin.setText(getWinnerName());
-        if (game instanceof OnlineGame && isX && ((OnlineGame) game).getLastMoveId() != -1) {
-            updateScore();
+        if (game instanceof OnlineGame && ((OnlineGame) game).getLastMoveId() != -1) {
+            if (isX || isOtherPlayerLeft)
+                updateScore(true);
+            else updateScore(false);
         }
         txtRematch = dialog.findViewById(R.id.txtRematch);
         if (isOtherPlayerLeft)
@@ -362,14 +382,25 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                     game.setXTurn(true);
                     isX = !isX;
                     game.setOver(false);
+                    if (!isGameStarted)
+                        isOtherPlayerLeft = true;
                     game.initialSigns();
                     if (mListener != null && mode == Constants.MODE.ONLINE) {
                         ((OnlineGame) game).setLastMoveId(-1);
-                        mListener.rematch((OnlineGame) game);
+                        if (isCreator)
+                            ((OnlineGame) game).setPlayer1Connected(false);
+                        else ((OnlineGame) game).setPlayer2Connected(false);
+                        mListener.rematch((OnlineGame) game, isRandom, isCreator);
+                        if (isCreator)
+                            ((OnlineGame) game).setPlayer1Connected(true);
+                        else ((OnlineGame) game).setPlayer2Connected(true);
                     }
                     tlBoard.removeAllViews();
                     initialBoard();
                     dialog.cancel();
+                    imgShowDialog.setVisibility(View.INVISIBLE);
+                    timeLeftX = timeLeftO = startTimeMillis;
+                    initialTextViews();
                 }
             });
         TextView txtLeaveGame = dialog.findViewById(R.id.txtLeaveGame);
@@ -380,50 +411,60 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                     String key = "";
                     if (game instanceof OnlineGame) {
                         key = ((OnlineGame) game).getKeyGame();
-                        if (isX)
+                        if (isCreator)
                             ((OnlineGame) game).setPlayer1Connected(false);
                         else
                             ((OnlineGame) game).setPlayer2Connected(false);
                     }
-                    mListener.leaveGame(key, isX, mode, isRandom);
+                    mListener.leaveGame(key, isCreator, mode, isRandom);
                 }
                 dialog.cancel();
             }
         });
     }
 
-    private void updateScore() {
-        int rank1 = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank(), rank2 = otherPlayer.getRank();
-        int difScore = (rank1 - rank2) / 50;
+    private void updateScore(boolean isUpdateFirebase) {
+        int rankX, rankO;
+        if (isX) {
+            rankX = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank();
+            rankO = otherPlayer.getRank();
+        } else {
+            rankX = otherPlayer.getRank();
+            rankO = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank();
+        }
+        int difScore = (rankX - rankO) / 50;
         if (8 - Math.abs(difScore) < 2) {
-            if (rank1 > rank2)
+            if (rankX > rankO)
                 difScore = 2;
             else difScore = -2;
         }
         if (!game.isXTurn()) {
-            rank1 += 8 - difScore;
-            rank2 -= 8 - difScore;
+            rankX += 8 - difScore;
+            rankO -= 8 - difScore;
         } else {
-            rank1 -= 8 + difScore;
-            rank2 += 8 + difScore;
+            rankX -= 8 + difScore;
+            rankO += 8 + difScore;
         }
-        rank1 = rank1 < 0 ? 0 : rank1;
-        rank2 = rank2 < 0 ? 0 : rank2;
-        if (isX) {
-            txtRankX.setText(String.valueOf(rank1));
-            txtRankO.setText(String.valueOf(rank2));
-            SharedPreferencesHelper.getInstance(getContext()).setRank(rank1);
+        rankX = rankX < 0 ? 0 : rankX;
+        rankO = rankO < 0 ? 0 : rankO;
+
+        if(isX) {
+            SharedPreferencesHelper.getInstance(getContext()).setRank(rankX);
+            otherPlayer.setRank(rankO);
         } else {
-            txtRankX.setText(txtRankX.getText().toString() + " " + rank2);
-            txtRankX.setText(txtRankX.getText().toString() + " " + rank1);
-            SharedPreferencesHelper.getInstance(getContext()).setRank(rank2);
+            SharedPreferencesHelper.getInstance(getContext()).setRank(rankO);
+            otherPlayer.setRank(rankX);
         }
-        if (mListener != null)
-            mListener.updateScore(rank1, rank2, otherPlayer.textEmailForFirebase());
+
+        txtRankX.setText(String.valueOf(rankX));
+        txtRankO.setText(String.valueOf(rankO));
+
+        if (isUpdateFirebase && mListener != null)
+            mListener.updateScore(rankX, rankO, otherPlayer.textEmailForFirebase());
     }
 
     private String getWinnerName() {
-        if(isOtherPlayerLeft)
+        if (isOtherPlayerLeft)
             return "Your Opponent Left";
         String winner;
         if (!game.isXTurn()) {
@@ -431,7 +472,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 if (isX)
                     winner = "You";
                 else winner = otherPlayer.getFirstName();
-            else if(mode == Constants.MODE.OFFLINE_FRIEND)
+            else if (mode == Constants.MODE.OFFLINE_FRIEND)
                 winner = "X";
             else winner = "You";
         } else {
@@ -439,7 +480,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                 if (!isX)
                     winner = "You";
                 else winner = otherPlayer.getFirstName();
-            else if(mode == Constants.MODE.OFFLINE_FRIEND)
+            else if (mode == Constants.MODE.OFFLINE_FRIEND)
                 winner = "O";
             else winner = "Computer";
         }
@@ -461,6 +502,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onDetach() {
         super.onDetach();
+        isPauseX = isPauseO = true;
         if (game instanceof OnlineGame)
             mListener.leaveGame(((OnlineGame) game).getKeyGame(), isX, mode, isRandom);
         mListener.registerGameEvent(null);
@@ -482,24 +524,28 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     }
 
     @Override
-    public void onOtherPlayerConnectionEvent(boolean isConneted) {
-        if (isConneted) {
+    public void onOtherPlayerConnectionEvent(boolean isConnected) {
+        if (isConnected) {
             isGameStarted = true;
-            mListener.getOtherPlayer(!isX ? ((OnlineGame) game).getEmailPlayer1() : ((OnlineGame) game).getEmailPlayer2());
+            isOtherPlayerLeft = false;
+            if (otherPlayer == null)
+                mListener.getOtherPlayer(!isX ? ((OnlineGame) game).getEmailPlayer1() : ((OnlineGame) game).getEmailPlayer2());
         } else {
-            isOtherPlayerLeft = true;
-            if (((OnlineGame) game).getLastMoveId() != -1) {
-                Toast.makeText(getContext(), "Your opponent has left the game", Toast.LENGTH_SHORT).show();
-                game.setXTurn(isX);
-                win();
-            } else {
-                if(isGameStarted) {
-                    initialWinDialog();
-                    dialog.show();
+            if (isGameStarted) {
+                isOtherPlayerLeft = true;
+                if (((OnlineGame) game).getLastMoveId() != -1) {
+                    Toast.makeText(getContext(), "Your opponent has left the game", Toast.LENGTH_SHORT).show();
+                    game.setXTurn(isX);
+                    win();
+                } else {
+                    if (isGameStarted) {
+                        initialWinDialog();
+                        dialog.show();
+                    }
                 }
+                if (txtRematch != null)
+                    txtRematch.setVisibility(View.INVISIBLE);
             }
-            if (txtRematch != null)
-                txtRematch.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -515,10 +561,15 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         }
     }
 
-    public interface OnFragmentInteractionListener {
-        void rematch(OnlineGame game);
+    @Override
+    public void onBackPressedInActivity() {
+        mListener.showHomePage();
+    }
 
-        void updateGameState(String key, int moveId, boolean isRandom);
+    public interface OnFragmentInteractionListener {
+        void rematch(OnlineGame game, boolean isRandom, boolean isX);
+
+        void updateGameState(OnlineGame game, boolean isRandom);
 
         void listenToGame(String keyGame, boolean aBoolean);
 
@@ -529,5 +580,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         void updateScore(int rank, int rank2, String email2);
 
         void getOtherPlayer(String email);
+
+        void showHomePage();
     }
 }

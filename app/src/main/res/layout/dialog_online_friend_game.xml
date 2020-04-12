@@ -3,6 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@color/colorBackground"
     android:padding="10dp">
 
     <TextView
@@ -10,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:textColor="@color/colorText"
         android:text="Join a friend" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -31,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
+            android:textColor="@color/colorText"
             android:text="Invite a friend" />
 
         <CheckBox

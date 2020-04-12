@@ -7,6 +7,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
+            android:icon="@drawable/home"
             android:title="home" />
 
 <!--        <item-->
@@ -15,6 +16,7 @@
 
         <item
             android:id="@+id/nav_profile"
+            android:icon="@drawable/profile"
             android:title="My profile" />
 
         <item
@@ -29,8 +31,8 @@
 
         <item
             android:id="@+id/nav_logout"
+            android:icon="@drawable/log_out"
             android:title="Log Out" />
     </group>
-
 
 </menu>

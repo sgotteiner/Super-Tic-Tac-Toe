@@ -36,14 +36,14 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.PlaceHolder>{
 
     public class PlaceHolder extends RecyclerView.ViewHolder {
 
-        private TextView txtName, txtEmail;
+        private TextView txtName, txtRank;
         private ImageView imgProfile;
 
 
         public PlaceHolder(View view) {
             super(view);
             txtName = view.findViewById(R.id.txtName);
-            txtEmail = view.findViewById(R.id.txtEmail);
+            txtRank = view.findViewById(R.id.txtRank);
             imgProfile = view.findViewById(R.id.imgProfile);
         }
     }
@@ -61,7 +61,7 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.PlaceHolder>{
         final User user = users.get(position);
 
         holder.txtName.setText(user.getFirstName());
-        holder.txtEmail.setText(user.getEmail());
+        holder.txtRank.setText("(" + user.getRank() + ")");
         new DownloadImage(Patch.PROFILES, user.getEmail(), new DownloadImage.IDownloadImage() {
             @Override
             public void onSuccess(Uri uri) {
