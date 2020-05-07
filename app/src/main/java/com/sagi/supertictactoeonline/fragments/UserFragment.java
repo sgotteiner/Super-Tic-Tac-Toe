@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -44,7 +43,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     private final int IMG_FROM_GALLERY = 2;
     private Bitmap bitmapProfile = null;
     private User user;
-    private TextView txtEmail, txtRank, txtName;
+    private TextView txtRank;
+    private EditText edtName;
     private ProgressDialog progressDialogDownload;
     private ProgressDialog progressDialogUpload;
 
@@ -113,17 +113,17 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     }
 
     private void uploadImage() {
-        new UploadImage(Patch.PROFILES, user.getEmail(), bitmapProfile, new UploadImage.IUploadImage() {
+        new UploadImage(Patch.PROFILES, user.getName(), bitmapProfile, new UploadImage.IUploadImage() {
             @Override
             public void onSuccess() {
-                progressDialogUpload.dismiss();
-                mListener.showHomePage();
+                downloadCompleted();
             }
 
             @Override
             public void onFail(String error) {
-                progressDialogUpload.dismiss();
+                downloadCompleted();
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
@@ -133,9 +133,14 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         }).startUpload();
     }
 
+    private void downloadCompleted(){
+        progressDialogUpload.dismiss();
+        if (mListener != null)
+            mListener.showHomePage();
+    }
     private void loadImageProfile() {
         showDialogDownload();
-        new DownloadImage(Patch.PROFILES, user.getEmail(), new DownloadImage.IDownloadImage() {
+        new DownloadImage(Patch.PROFILES, user.getName(), new DownloadImage.IDownloadImage() {
             @Override
             public void onSuccess(Uri uri) {
                 stopProgressBar();
@@ -151,10 +156,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     }
 
     private void loadAllFields(View view) {
-        txtName = view.findViewById(R.id.txtName);
-        txtName.setText(getUserFirstNameWithUpperCase(user.getFirstName()));
-        txtEmail = view.findViewById(R.id.txtEmail);
-        txtEmail.setText(user.getEmail());
+        edtName = view.findViewById(R.id.txtName);
+        edtName.setText(user.getName());
         txtRank = view.findViewById(R.id.txtRank);
         txtRank.setText(String.valueOf(user.getRank()));
         imgProfilePicture = view.findViewById(R.id.imgProfilePicture);
@@ -165,14 +168,14 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!edtName.getText().toString().equals(user.getName()))
+                    user.setName(edtName.getText().toString());
                 if (bitmapProfile != null) {
                     showDialogUpload();
                     mListener.updateProfile(user);
                     uploadImage();
-
-                } else {
+                } else
                     mListener.updateProfileWithoutBitmap(user);
-                }
             }
 
         });
@@ -188,10 +191,6 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
                 }
             }
         });
-    }
-
-    private String getUserFirstNameWithUpperCase(String firstName) {
-        return Utils.geteFirstLettersUpperCase(firstName);
     }
 
     @Override

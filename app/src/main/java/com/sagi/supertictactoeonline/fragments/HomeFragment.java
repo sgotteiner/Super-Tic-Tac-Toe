@@ -57,7 +57,6 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgPlayOfflineComputer = view.findViewById(R.id.imgPlayOfflineComputer);
         spnTimeLimit = view.findViewById(R.id.spnTimeLimit);
         ArrayAdapter<String> adapterTimeLimit = new ArrayAdapter<>(getContext(), R.layout.item_spinner, TIME_LIMIT);
-//        adapterTimeLimit.setDropDownViewResource(R.layout.item_spinner);
         spnTimeLimit.setAdapter(adapterTimeLimit);
         spnTimeLimit.setSelection(SharedPreferencesHelper.getInstance(getContext()).getStartTime());
     }
@@ -129,7 +128,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         adapterJoin = new AdapterUser(arrJoin, getContext(), new AdapterUser.CallbackAdapterUser() {
             @Override
             public void onPick(User user, boolean isJoin) {
-                mListener.joinGame(SharedPreferencesHelper.getInstance(getContext()).getUser(), user.textEmailForFirebase());
+                mListener.joinGame(user.getName());
                 dialogOnlineFriendGame.dismiss();
             }
         }, true);
@@ -141,7 +140,7 @@ public class HomeFragment extends Fragment implements IHomePage {
         adapterInvite = new AdapterUser(arrFriends, getContext(), new AdapterUser.CallbackAdapterUser() {
             @Override
             public void onPick(User user, boolean isJoin) {
-                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), user.getEmail(), checkboxWhatsappInvitation.isChecked(), startTimeMillis());
+                mListener.sendInvitation(user.getName(), checkboxWhatsappInvitation.isChecked(), startTimeMillis());
                 dialogOnlineFriendGame.dismiss();
             }
         }, false);
@@ -155,7 +154,10 @@ public class HomeFragment extends Fragment implements IHomePage {
         imgSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.sendInvitation(SharedPreferencesHelper.getInstance(getContext()).getUser(), edtSearch.getText().toString(), true, startTimeMillis());
+                mListener.sendInvitation(edtSearch.getText().toString(), checkboxWhatsappInvitation.isChecked(),
+                        startTimeMillis());
+                dialogOnlineFriendGame.dismiss();
+                mListener.closeKeyBoard();
             }
         });
         mListener.loadInvitations();
@@ -215,7 +217,7 @@ public class HomeFragment extends Fragment implements IHomePage {
     private void updateFriends() {
         for (int i = 0; i < arrJoin.size(); i++) {
             for (int j = 0; j < arrFriends.size(); j++) {
-                if (arrJoin.get(i).getEmail().equals(arrFriends.get(j).getEmail())) {
+                if (arrJoin.get(i).getName().equals(arrFriends.get(j).getName())) {
                     arrFriends.remove(i);
                 }
             }
@@ -242,12 +244,14 @@ public class HomeFragment extends Fragment implements IHomePage {
 
         void registerEventFromMain(IHomePage iHomePage);
 
-        void sendInvitation(User user, String email, boolean isWhatsapp, long startTimeMillis);
+        void sendInvitation(String name, boolean isWhatsapp, long startTimeMillis);
 
         void loadFriends();
 
         void loadInvitations();
 
-        void joinGame(User user, String textEmailForFirebase);
+        void joinGame(String name);
+
+        void closeKeyBoard();
     }
 }

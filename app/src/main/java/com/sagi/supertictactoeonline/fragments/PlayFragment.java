@@ -84,22 +84,22 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (mode == Constants.MODE.ONLINE) {
                 User user = SharedPreferencesHelper.getInstance(getContext()).getUser();
                 if (isX) {
-                    txtTurnX.setText(user.getFirstName());
+                    txtTurnX.setText(user.getName());
                     txtRankX.setText(String.valueOf(user.getRank()));
                     if (otherPlayer == null)
                         txtTurnO.setText("Coming");
                     else {
-                        txtTurnO.setText(otherPlayer.getFirstName());
+                        txtTurnO.setText(otherPlayer.getName());
                         txtRankO.setText(String.valueOf(otherPlayer.getRank()));
                     }
                 } else {
                     if (otherPlayer == null)
                         txtTurnX.setText("Coming");
                     else {
-                        txtTurnX.setText(otherPlayer.getFirstName());
+                        txtTurnX.setText(otherPlayer.getName());
                         txtRankX.setText(String.valueOf(otherPlayer.getRank()));
                     }
-                    txtTurnO.setText(user.getFirstName());
+                    txtTurnO.setText(user.getName());
                     txtRankO.setText(String.valueOf(user.getRank()));
                 }
             } else {
@@ -258,7 +258,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             } else game = new ComputerGame(14);
             isGameStarted = true;
         } else {
-            isX = isCreator = ((OnlineGame) game).getEmailPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getEmail());
+            isX = isCreator = ((OnlineGame) game).getKeyPlayer1().equals(SharedPreferencesHelper.getInstance(getContext()).getUser().getName());
             isRandom = bundle.getBoolean(IS_RANDOM);
             startTimeMillis = timeLeftX = timeLeftO = bundle.getLong(START_TIME_MILLIS);
             mListener.listenToGame(((OnlineGame) game).getKeyGame(), isRandom);
@@ -352,10 +352,10 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
     private void win() {
         isPauseX = isPauseO = true;
+        isGameStarted = false;
         initialWinDialog();
         dialog.show();
         imgShowDialog.setVisibility(View.VISIBLE);
-        isGameStarted = false;
     }
 
     private Dialog dialog;
@@ -367,7 +367,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         dialog.setContentView(R.layout.dialog_win);
         TextView txtTitleWin = dialog.findViewById(R.id.txtTitleWin);
         txtTitleWin.setText(getWinnerName());
-        if (game instanceof OnlineGame && ((OnlineGame) game).getLastMoveId() != -1) {
+        if (game instanceof OnlineGame && ((OnlineGame) game).getLastMoveId() > -1) {
             if (isX || isOtherPlayerLeft)
                 updateScore(true);
             else updateScore(false);
@@ -382,20 +382,14 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                     game.setXTurn(true);
                     isX = !isX;
                     game.setOver(false);
-                    if (!isGameStarted)
-                        isOtherPlayerLeft = true;
-                    game.initialSigns();
                     if (mListener != null && mode == Constants.MODE.ONLINE) {
-                        ((OnlineGame) game).setLastMoveId(-1);
-                        if (isCreator)
-                            ((OnlineGame) game).setPlayer1Connected(false);
-                        else ((OnlineGame) game).setPlayer2Connected(false);
-                        mListener.rematch((OnlineGame) game, isRandom, isCreator);
-                        if (isCreator)
-                            ((OnlineGame) game).setPlayer1Connected(true);
-                        else ((OnlineGame) game).setPlayer2Connected(true);
+                        if (!isGameStarted)
+                            isOtherPlayerLeft = true;
+                        ((OnlineGame) game).setLastMoveId(isCreator ? -1 : -2);
+                        mListener.rematch((OnlineGame) game, isRandom);
                     }
                     tlBoard.removeAllViews();
+                    game.initialSigns();
                     initialBoard();
                     dialog.cancel();
                     imgShowDialog.setVisibility(View.INVISIBLE);
@@ -411,10 +405,6 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
                     String key = "";
                     if (game instanceof OnlineGame) {
                         key = ((OnlineGame) game).getKeyGame();
-                        if (isCreator)
-                            ((OnlineGame) game).setPlayer1Connected(false);
-                        else
-                            ((OnlineGame) game).setPlayer2Connected(false);
                     }
                     mListener.leaveGame(key, isCreator, mode, isRandom);
                 }
@@ -448,7 +438,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         rankX = rankX < 0 ? 0 : rankX;
         rankO = rankO < 0 ? 0 : rankO;
 
-        if(isX) {
+        if (isX) {
             SharedPreferencesHelper.getInstance(getContext()).setRank(rankX);
             otherPlayer.setRank(rankO);
         } else {
@@ -460,7 +450,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         txtRankO.setText(String.valueOf(rankO));
 
         if (isUpdateFirebase && mListener != null)
-            mListener.updateScore(rankX, rankO, otherPlayer.textEmailForFirebase());
+            mListener.updateScore(rankX, rankO, otherPlayer.getName());
     }
 
     private String getWinnerName() {
@@ -471,7 +461,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (mode == Constants.MODE.ONLINE)
                 if (isX)
                     winner = "You";
-                else winner = otherPlayer.getFirstName();
+                else winner = otherPlayer.getName();
             else if (mode == Constants.MODE.OFFLINE_FRIEND)
                 winner = "X";
             else winner = "You";
@@ -479,7 +469,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (mode == Constants.MODE.ONLINE)
                 if (!isX)
                     winner = "You";
-                else winner = otherPlayer.getFirstName();
+                else winner = otherPlayer.getName();
             else if (mode == Constants.MODE.OFFLINE_FRIEND)
                 winner = "O";
             else winner = "Computer";
@@ -504,22 +494,25 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         super.onDetach();
         isPauseX = isPauseO = true;
         if (game instanceof OnlineGame)
-            mListener.leaveGame(((OnlineGame) game).getKeyGame(), isX, mode, isRandom);
+            mListener.leaveGame(((OnlineGame) game).getKeyGame(), isCreator, mode, isRandom);
         mListener.registerGameEvent(null);
         mListener = null;
     }
 
     @Override
     public void updateGameChanges(OnlineGame game) {
-        ((OnlineGame) this.game).setEmailPlayer2(game.getEmailPlayer2());
-        ((OnlineGame) this.game).setPlayer2Connected(game.isPlayer2Connected());
         int move = game.getLastMoveId();
-        if (move != -1) {
+        if (move > -1) {
             if (timeLeftX != 0)
                 startTimer(isX);
             makeTurn(move / boardSize, move % boardSize);
             if (!game.isOver())
                 switchClock();
+        } else {
+            isGameStarted = true;
+            isOtherPlayerLeft = false;
+            ((OnlineGame) this.game).setKeyPlayer2(game.getKeyPlayer2());
+            ((OnlineGame) this.game).setPlayer2Connected(game.isPlayer2Connected());
         }
     }
 
@@ -529,22 +522,20 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             isGameStarted = true;
             isOtherPlayerLeft = false;
             if (otherPlayer == null)
-                mListener.getOtherPlayer(!isX ? ((OnlineGame) game).getEmailPlayer1() : ((OnlineGame) game).getEmailPlayer2());
+                mListener.getOtherPlayer(!isX ? ((OnlineGame) game).getKeyPlayer1() : ((OnlineGame) game).getKeyPlayer2());
         } else {
             if (isGameStarted) {
                 isOtherPlayerLeft = true;
-                if (((OnlineGame) game).getLastMoveId() != -1) {
-                    Toast.makeText(getContext(), "Your opponent has left the game", Toast.LENGTH_SHORT).show();
+                if (((OnlineGame) game).getLastMoveId() > -1) {
                     game.setXTurn(isX);
                     win();
                 } else {
-                    if (isGameStarted) {
-                        initialWinDialog();
-                        dialog.show();
-                    }
+                    initialWinDialog();
+                    dialog.show();
                 }
-                if (txtRematch != null)
-                    txtRematch.setVisibility(View.INVISIBLE);
+            }
+            if (txtRematch != null) {
+                txtRematch.setVisibility(View.INVISIBLE);
             }
         }
     }
@@ -553,10 +544,10 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     public void setOtherPlayer(User user) {
         this.otherPlayer = user;
         if (isX) {
-            txtTurnO.setText(user.getFirstName());
+            txtTurnO.setText(user.getName());
             txtRankO.setText(String.valueOf(user.getRank()));
         } else {
-            txtTurnX.setText(user.getFirstName());
+            txtTurnX.setText(user.getName());
             txtRankX.setText(String.valueOf(user.getRank()));
         }
     }
@@ -567,7 +558,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     }
 
     public interface OnFragmentInteractionListener {
-        void rematch(OnlineGame game, boolean isRandom, boolean isX);
+        void rematch(OnlineGame game, boolean isRandom);
 
         void updateGameState(OnlineGame game, boolean isRandom);
 
@@ -577,7 +568,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
         void leaveGame(String keyGame, boolean isX, Constants.MODE mode, boolean isRandom);
 
-        void updateScore(int rank, int rank2, String email2);
+        void updateScore(int rank, int rank2, String key);
 
         void getOtherPlayer(String email);
 

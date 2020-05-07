@@ -36,7 +36,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private void showCurrentScreen() {
         Intent intent;
-        if (isAlreadyLogin()) {
+        if (false) {
             intent = new Intent(SplashActivity.this, MainActivity.class);
         } else {
             intent = new Intent(SplashActivity.this, RegisterLoginActivity.class);

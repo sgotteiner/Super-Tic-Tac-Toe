@@ -1,21 +1,19 @@
 package com.sagi.supertictactoeonline.entities;
 
-import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
-
 public class OnlineGame extends Game {
 
-    private String keyGame, emailPlayer1, emailPlayer2;
+    private String keyGame, keyPlayer1, keyPlayer2;
     private int lastMoveId;
     private boolean isPlayer1Connected, isPlayer2Connected;
     private long startTimeMillis;
 
     public OnlineGame(){}
 
-    public OnlineGame(int boardSize, String keyGame, String emailPlayer1, long startTimeMillis) {
+    public OnlineGame(int boardSize, String keyGame, String keyPlayer1, long startTimeMillis) {
         super(boardSize);
         this.keyGame = keyGame;
-        this.emailPlayer1 = emailPlayer1;
-        emailPlayer2 = "";
+        this.keyPlayer1 = keyPlayer1;
+        keyPlayer2 = "";
         lastMoveId = -1;
         isPlayer1Connected = true;
         isPlayer2Connected = false;
@@ -38,20 +36,20 @@ public class OnlineGame extends Game {
         this.keyGame = keyGame;
     }
 
-    public String getEmailPlayer1() {
-        return emailPlayer1;
+    public String getKeyPlayer1() {
+        return keyPlayer1;
     }
 
-    public void setEmailPlayer1(String emailPlayer1) {
-        this.emailPlayer1 = emailPlayer1;
+    public void setKeyPlayer1(String keyPlayer1) {
+        this.keyPlayer1 = keyPlayer1;
     }
 
-    public String getEmailPlayer2() {
-        return emailPlayer2;
+    public String getKeyPlayer2() {
+        return keyPlayer2;
     }
 
-    public void setEmailPlayer2(String emailPlayer2) {
-        this.emailPlayer2 = emailPlayer2;
+    public void setKeyPlayer2(String keyPlayer2) {
+        this.keyPlayer2 = keyPlayer2;
     }
 
     public int getLastMoveId() {

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -55,6 +56,7 @@ public class RegisterLoginActivity extends AppCompatActivity
     private Fragment fragment;
     private SignInButton btnSignIn;
     private ImageView imgProfile;
+    private EditText edtNickname;
     private final int PICK_IMAGE = 1;
     private Bitmap newProfilePic = null;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 20;
@@ -62,7 +64,6 @@ public class RegisterLoginActivity extends AppCompatActivity
     private FirebaseAuth mAuth;
     private IWaitingProgressBar iWaitingProgressBar;
     private GoogleSignInClient mGoogleSignInClient;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,15 +79,16 @@ public class RegisterLoginActivity extends AppCompatActivity
         if (getIntent().getBooleanExtra("isSignOut", false))
             signOut();
 
+
         btnSignIn = findViewById(R.id.btnSignIn);
+        edtNickname = findViewById(R.id.edtNickname);
+        imgProfile = findViewById(R.id.imgProfile);
         btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    signIn();
+                signIn();
             }
         });
-
-        imgProfile = findViewById(R.id.imgProfile);
         imgProfile.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
@@ -119,7 +121,6 @@ public class RegisterLoginActivity extends AppCompatActivity
         startActivityForResult(photoPickerIntent, PICK_IMAGE);
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -143,8 +144,13 @@ public class RegisterLoginActivity extends AppCompatActivity
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            if (account != null)
-                goToMain(account, !getIntent().getBooleanExtra("isSignOut", false) && true);
+            if (account != null){
+                boolean isNew;
+                if(getIntent().getBundleExtra("isSignOut") == null)
+                    isNew = true;
+                else isNew = getIntent().getBooleanExtra("isSignOut", false);
+                goToMain(account, isNew);
+            }
         } catch (ApiException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -158,18 +164,52 @@ public class RegisterLoginActivity extends AppCompatActivity
             goToMain(account, false);
     }
 
-    private void goToMain(GoogleSignInAccount account, boolean isNew) {
-        final User[] user = new User[1];
+    private void goToMain(final GoogleSignInAccount account, boolean isNew) {
+        if (edtNickname.getText().toString().equals("")) {
+            isNew = false;
+        }
         if (isNew) {
-            user[0] = new User(account.getDisplayName(), account.getEmail(), System.currentTimeMillis(), 1000);
-            myRef.child(USERS_TABLE).child(user[0].textEmailForFirebase()).setValue(user[0]);
-            SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user[0]);
-        } else {
-            myRef.child(USERS_TABLE).child(Utils.textEmailForFirebase(account.getEmail())).addListenerForSingleValueEvent(new ValueEventListener() {
+            myRef.child(USERS_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    user[0] = dataSnapshot.getValue(User.class);
-                    SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user[0]);
+                    boolean isValidName = true;
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
+                        if (snapshot.getValue(User.class).getName().equals(edtNickname.getText().toString()) && !snapshot.getValue(User.class).getKey().equals(account.getId())) {
+                            isValidName = false;
+                            Toast.makeText(RegisterLoginActivity.this, "Name already exists", Toast.LENGTH_SHORT).show();
+                            break;
+                        }
+                    if (isValidName) {
+                        User user = new User(edtNickname.getText().toString(), account.getId(), System.currentTimeMillis(), 1000);
+                        myRef.child(USERS_TABLE).child(user.getName()).setValue(user);
+                        SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
+                        if (newProfilePic != null)
+                            uploadBitmap(newProfilePic, user.getName(), true);
+                        showMainActivity(true);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            myRef.child(USERS_TABLE).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User user;
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        user = snapshot.getValue(User.class);
+                        if (user.getKey().equals(account.getId())) {
+                            SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
+                            if (newProfilePic != null)
+                                uploadBitmap(newProfilePic, user.getName(), true);
+                            showMainActivity(true);
+                            return;
+                        }
+                    }
+                    Toast.makeText(RegisterLoginActivity.this, "Please enter a username", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -178,14 +218,10 @@ public class RegisterLoginActivity extends AppCompatActivity
                 }
             });
         }
-        if(newProfilePic != null){
-            uploadBitmap(newProfilePic, user[0], true);
-        }
-        showMainActivity(true);
     }
 
-    private void uploadBitmap(Bitmap bitmapProfile, User user, final boolean isRememberMe) {
-        new UploadImage(Patch.PROFILES, user.getEmail(), bitmapProfile, new UploadImage.IUploadImage() {
+    private void uploadBitmap(Bitmap bitmapProfile, String key, final boolean isRememberMe) {
+        new UploadImage(Patch.PROFILES, key, bitmapProfile, new UploadImage.IUploadImage() {
             @Override
             public void onSuccess() {
                 if (iWaitingProgressBar != null)
@@ -213,15 +249,15 @@ public class RegisterLoginActivity extends AppCompatActivity
 
     @Override
     public void createUser(final User user, String password, final boolean isRememberMe, final Bitmap newProfilePic) {
-        mAuth.createUserWithEmailAndPassword(user.getEmail(), password)
+        mAuth.createUserWithEmailAndPassword(user.getName(), password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
-                            myRef.child(USERS_TABLE).child(user.textEmailForFirebase()).setValue(user);
+                            myRef.child(USERS_TABLE).child(user.getName()).setValue(user);
                             if (newProfilePic != null)
-                                uploadBitmap(newProfilePic, user, isRememberMe);
+                                uploadBitmap(newProfilePic, user.getName(), isRememberMe);
                             else {
                                 if (iWaitingProgressBar != null)
                                     iWaitingProgressBar.stopProgressBar();
@@ -251,10 +287,10 @@ public class RegisterLoginActivity extends AppCompatActivity
                 });
     }
 
-    private void getUserFromFirebase(String email, final boolean isRememberMe) {
+    private void getUserFromFirebase(String key, final boolean isRememberMe) {
         User user = new User();
-        user.setEmail(email);
-        myRef.child(FireBaseConstant.USERS_TABLE).child(user.textEmailForFirebase()).addListenerForSingleValueEvent(new ValueEventListener() {
+        user.setName(key);
+        myRef.child(FireBaseConstant.USERS_TABLE).child(user.getName()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User userProfile = dataSnapshot.getValue(User.class);
@@ -292,7 +328,7 @@ public class RegisterLoginActivity extends AppCompatActivity
     }
 
     private void showMainActivity(boolean isRememberMe) {
-        SharedPreferencesHelper.getInstance(this).setIsAlreadyLogin(isRememberMe);
+//        SharedPreferencesHelper.getInstance(this).setIsAlreadyLogin(isRememberMe);
         Intent intent = new Intent(RegisterLoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();

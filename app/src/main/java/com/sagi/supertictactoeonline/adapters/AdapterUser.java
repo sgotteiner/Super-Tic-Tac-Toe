@@ -60,9 +60,9 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.PlaceHolder>{
 
         final User user = users.get(position);
 
-        holder.txtName.setText(user.getFirstName());
+        holder.txtName.setText(user.getName());
         holder.txtRank.setText("(" + user.getRank() + ")");
-        new DownloadImage(Patch.PROFILES, user.getEmail(), new DownloadImage.IDownloadImage() {
+        new DownloadImage(Patch.PROFILES, user.getName(), new DownloadImage.IDownloadImage() {
             @Override
             public void onSuccess(Uri uri) {
                 Picasso.with(context).load(uri).fit().into(holder.imgProfile);

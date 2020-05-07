@@ -2,29 +2,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
     android:background="@color/colorBackground"
+    android:padding="10dp"
     tools:context="com.sagi.supertictactoeonline.fragments.UserFragment">
 
-        <TextView
-            android:id="@+id/txtTitleUser"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp"
-            android:text="My Profile"
-            android:textColor="@color/colorText"
-            android:textSize="50sp" />
+    <TextView
+        android:id="@+id/txtTitleUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="My Profile"
+        android:textColor="@color/colorText"
+        android:textSize="50sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txtTitleUser"
+        android:layout_centerVertical="true">
 
         <RelativeLayout
             android:id="@+id/r1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_below="@+id/txtTitleUser">
+            android:layout_marginTop="30dp">
 
             <TextView
-                android:id="@+id/txtHeaderName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
@@ -32,7 +36,7 @@
                 android:textColor="@color/colorText"
                 android:textSize="@dimen/text_view_header" />
 
-            <TextView
+            <EditText
                 android:id="@+id/txtName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -47,38 +51,11 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/r3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_below="@id/r1">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:text="Email"
-                android:textColor="@color/colorText"
-                android:textSize="@dimen/text_view_header" />
-
-            <TextView
-                android:id="@+id/txtEmail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:text="sgotteiner@gmail.com"
-                android:textColor="@color/colorText"
-                android:textSize="@dimen/text_view_header" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
             android:id="@+id/r4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_below="@+id/r3">
+            android:layout_below="@+id/r1"
+            android:layout_marginTop="30dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -134,16 +111,17 @@
                 android:textSize="10sp" />
 
         </RelativeLayout>
+    </RelativeLayout>
 
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@+id/linearLayoutImage"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/shape_editext"
-            android:text="save"
-            android:textColor="@color/colorWhite" />
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="10dp"
+        android:background="@drawable/shape_editext"
+        android:text="save"
+        android:textColor="@color/colorWhite" />
 
 </RelativeLayout>
