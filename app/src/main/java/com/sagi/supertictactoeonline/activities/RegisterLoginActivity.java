@@ -207,7 +207,7 @@ public class RegisterLoginActivity extends AppCompatActivity {
         progressDialogUpload.setMessage("Uploading...");
         progressDialogUpload.setTitle("Uploading started");
         progressDialogUpload.setCancelable(false);
-        progressDialogUpload.setIcon(R.drawable.x); //TODO make logo
+        progressDialogUpload.setIcon(R.drawable.logo);
         progressDialogUpload.show();
     }
 
