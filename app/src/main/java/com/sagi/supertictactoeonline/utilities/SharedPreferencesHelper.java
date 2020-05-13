@@ -2,9 +2,7 @@ package com.sagi.supertictactoeonline.utilities;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.sagi.supertictactoeonline.entities.User;
-
 import static android.content.Context.MODE_PRIVATE;
 
 public class SharedPreferencesHelper {
@@ -17,17 +15,14 @@ public class SharedPreferencesHelper {
     private final String IS_ALREADY_LOGIN = "IS_ALREADY_LOGIN";
     private final String NAME = "NAME";
     private final String KEY = "KEY";
-    private final String BIRTHDAY = "BIRTHDAY";
     private final String LAST_TIME_SEEN = "LAST_TIME_SEEN";
     private final String RANK = "RANK";
-    private final String LAST_COUNT_REQUEST = "LAST_COUNT_REQUEST";
 
     private SharedPreferencesHelper(Context context) {
         preferences = context.getSharedPreferences(SETTINGS_APP, MODE_PRIVATE);
     }
 
     public static SharedPreferencesHelper getInstance(Context context) {
-
         if (mInstance == null)
             mInstance = new SharedPreferencesHelper(context);
 
@@ -36,10 +31,6 @@ public class SharedPreferencesHelper {
 
     public boolean isAlreadyLogin() {
         return preferences.getBoolean(IS_ALREADY_LOGIN, false);
-    }
-
-    public int getLastCountRequest() {
-        return preferences.getInt(LAST_COUNT_REQUEST, 0);
     }
 
     public void setIsAlreadyLogin(boolean isAlreadyLogin) {

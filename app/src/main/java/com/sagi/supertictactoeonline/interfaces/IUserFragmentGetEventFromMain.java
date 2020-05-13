@@ -1,8 +1,5 @@
 package com.sagi.supertictactoeonline.interfaces;
 
-import android.net.Uri;
-
-public interface IUserFragmentGetEventFromMain extends IWaitingProgressBar {
+public interface IUserFragmentGetEventFromMain {
     void onBackPressedInActivity();
-    void onDownloadUri(Uri uriProfile);
 }

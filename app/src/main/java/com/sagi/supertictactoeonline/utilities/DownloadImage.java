@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant;
 
 /**
  * Created by User on 01/03/2019.
@@ -18,13 +19,11 @@ import com.google.firebase.storage.StorageReference;
 public class DownloadImage {
 
     private StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
-    private Patch patchImage;
     private String imageName;
     private IDownloadImage mListener;
 
-    public DownloadImage(Patch patchImage, String imageName, IDownloadImage mListener) {
-        this.patchImage = patchImage;
-        this.imageName = patchImage.name().equals(Patch.GROUPS_PROFILES.name()) ? imageName : imageName.toLowerCase().replace(" ", "_");
+    public DownloadImage(String imageName, IDownloadImage mListener) {
+        this.imageName = imageName;
         this.mListener = mListener;
     }
 
@@ -35,8 +34,7 @@ public class DownloadImage {
     }
 
     public void startLoading() {
-
-        mStorageRef.child(patchImage.name()).child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+        mStorageRef.child(FireBaseConstant.PROFILES).child(imageName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onSuccess(Uri uri) {
@@ -52,6 +50,5 @@ public class DownloadImage {
                     mListener.onFail(exception.getMessage());
             }
         });
-
     }
 }

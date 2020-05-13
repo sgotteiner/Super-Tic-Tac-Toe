@@ -45,7 +45,6 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private Game game;
     int boardSize;
     int sign;
-    private PlayViewModel mViewModel;
     private TableLayout tlBoard;
     private TextView txtTurnX, txtTurnO, txtTimeX, txtTimeO, txtRankX, txtRankO;
     private CountDownTimer countDownTimerX, countDownTimerO;
@@ -54,7 +53,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
     private ImageView imgLastTurn;
     private OnFragmentInteractionListener mListener;
     private User otherPlayer;
-    private boolean isGameStarted = false;
+    private boolean isGameStarted = false, isRematch = false;
     private boolean isOtherPlayerLeft = false;
     private ImageView imgZoomOut, imgZoomIn, imgShowDialog;
 
@@ -379,6 +378,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             txtRematch.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    isRematch = true;
                     game.setXTurn(true);
                     isX = !isX;
                     game.setOver(false);
@@ -415,19 +415,21 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
     private void updateScore(boolean isUpdateFirebase) {
         int rankX, rankO;
-        if (isX) {
+        if (isCreator) {
             rankX = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank();
             rankO = otherPlayer.getRank();
         } else {
             rankX = otherPlayer.getRank();
             rankO = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank();
         }
+
         int difScore = (rankX - rankO) / 50;
         if (8 - Math.abs(difScore) < 2) {
             if (rankX > rankO)
                 difScore = 2;
             else difScore = -2;
         }
+
         if (!game.isXTurn()) {
             rankX += 8 - difScore;
             rankO -= 8 - difScore;
@@ -438,7 +440,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         rankX = rankX < 0 ? 0 : rankX;
         rankO = rankO < 0 ? 0 : rankO;
 
-        if (isX) {
+        if (isCreator) {
             SharedPreferencesHelper.getInstance(getContext()).setRank(rankX);
             otherPlayer.setRank(rankO);
         } else {
@@ -450,7 +452,9 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         txtRankO.setText(String.valueOf(rankO));
 
         if (isUpdateFirebase && mListener != null)
-            mListener.updateScore(rankX, rankO, otherPlayer.getName());
+            if (isCreator)
+                mListener.updateScore(rankX, rankO, otherPlayer.getName());
+            else mListener.updateScore(rankO, rankX, otherPlayer.getName());
     }
 
     private String getWinnerName() {
@@ -509,7 +513,8 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (!game.isOver())
                 switchClock();
         } else {
-            isGameStarted = true;
+            if (isRematch)
+                isGameStarted = true;
             isOtherPlayerLeft = false;
             ((OnlineGame) this.game).setKeyPlayer2(game.getKeyPlayer2());
             ((OnlineGame) this.game).setPlayer2Connected(game.isPlayer2Connected());
@@ -527,7 +532,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (isGameStarted) {
                 isOtherPlayerLeft = true;
                 if (((OnlineGame) game).getLastMoveId() > -1) {
-                    game.setXTurn(isX);
+                    game.setXTurn(!isCreator);
                     win();
                 } else {
                     initialWinDialog();

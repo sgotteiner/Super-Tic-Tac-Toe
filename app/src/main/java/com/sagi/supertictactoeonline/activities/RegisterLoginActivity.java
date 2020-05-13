@@ -2,6 +2,7 @@ package com.sagi.supertictactoeonline.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -17,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -25,35 +25,23 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.sagi.supertictactoeonline.entities.User;
-import com.sagi.supertictactoeonline.fragments.LoginFragment;
-import com.sagi.supertictactoeonline.fragments.RegisterFragment;
-import com.sagi.supertictactoeonline.interfaces.IWaitingProgressBar;
 import com.sagi.supertictactoeonline.utilities.ImageUtils;
-import com.sagi.supertictactoeonline.utilities.Patch;
 import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
 import com.sagi.supertictactoeonline.utilities.UploadImage;
-import com.sagi.supertictactoeonline.utilities.Utils;
-import com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant;
 import com.sagi.supertictactoeonline.R;
 
 import static com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant.USERS_TABLE;
 
-public class RegisterLoginActivity extends AppCompatActivity
-        implements RegisterFragment.OnFragmentInteractionListener,
-        LoginFragment.OnFragmentInteractionListener {
+public class RegisterLoginActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_SIGN_IN = 0;
-    private Fragment fragment;
     private SignInButton btnSignIn;
     private ImageView imgProfile;
     private EditText edtNickname;
@@ -61,16 +49,14 @@ public class RegisterLoginActivity extends AppCompatActivity
     private Bitmap newProfilePic = null;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 20;
     private DatabaseReference myRef;
-    private FirebaseAuth mAuth;
-    private IWaitingProgressBar iWaitingProgressBar;
     private GoogleSignInClient mGoogleSignInClient;
+    private ProgressDialog progressDialogUpload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_login);
 
-        mAuth = FirebaseAuth.getInstance();
         myRef = FirebaseDatabase.getInstance().getReference();
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
@@ -101,9 +87,6 @@ public class RegisterLoginActivity extends AppCompatActivity
                 }
             }
         });
-
-//        fragment = new LoginFragment();
-//        showFragment(fragment);
     }
 
     private void signIn() {
@@ -144,9 +127,9 @@ public class RegisterLoginActivity extends AppCompatActivity
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            if (account != null){
+            if (account != null) {
                 boolean isNew;
-                if(getIntent().getBundleExtra("isSignOut") == null)
+                if (getIntent().getBundleExtra("isSignOut") == null)
                     isNew = true;
                 else isNew = getIntent().getBooleanExtra("isSignOut", false);
                 goToMain(account, isNew);
@@ -159,9 +142,8 @@ public class RegisterLoginActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account != null)
-            goToMain(account, false);
+        if (SharedPreferencesHelper.getInstance(this).isAlreadyLogin())
+            startActivity(new Intent(RegisterLoginActivity.this, MainActivity.class));
     }
 
     private void goToMain(final GoogleSignInAccount account, boolean isNew) {
@@ -184,8 +166,8 @@ public class RegisterLoginActivity extends AppCompatActivity
                         myRef.child(USERS_TABLE).child(user.getName()).setValue(user);
                         SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
                         if (newProfilePic != null)
-                            uploadBitmap(newProfilePic, user.getName(), true);
-                        showMainActivity(true);
+                            uploadBitmap(newProfilePic, user.getName());
+                        else showMainActivity();
                     }
                 }
 
@@ -204,8 +186,8 @@ public class RegisterLoginActivity extends AppCompatActivity
                         if (user.getKey().equals(account.getId())) {
                             SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
                             if (newProfilePic != null)
-                                uploadBitmap(newProfilePic, user.getName(), true);
-                            showMainActivity(true);
+                                uploadBitmap(newProfilePic, user.getName());
+                            else showMainActivity();
                             return;
                         }
                     }
@@ -220,115 +202,40 @@ public class RegisterLoginActivity extends AppCompatActivity
         }
     }
 
-    private void uploadBitmap(Bitmap bitmapProfile, String key, final boolean isRememberMe) {
-        new UploadImage(Patch.PROFILES, key, bitmapProfile, new UploadImage.IUploadImage() {
+    private void showDialogUpload() {
+        progressDialogUpload = new ProgressDialog(this);
+        progressDialogUpload.setMessage("Uploading...");
+        progressDialogUpload.setTitle("Uploading started");
+        progressDialogUpload.setCancelable(false);
+        progressDialogUpload.setIcon(R.drawable.x); //TODO make logo
+        progressDialogUpload.show();
+    }
+
+    private void uploadBitmap(Bitmap bitmapProfile, String key) {
+        showDialogUpload();
+        new UploadImage(key, bitmapProfile, new UploadImage.IUploadImage() {
             @Override
             public void onSuccess() {
-                if (iWaitingProgressBar != null)
-                    iWaitingProgressBar.stopProgressBar();
+                progressDialogUpload.dismiss();
+                showMainActivity();
             }
 
             @Override
             public void onFail(String error) {
-                if (iWaitingProgressBar != null)
-                    iWaitingProgressBar.stopProgressBar();
+                progressDialogUpload.dismiss();
+                Toast.makeText(RegisterLoginActivity.this, error, Toast.LENGTH_SHORT).show();
+                showMainActivity();
             }
 
             @Override
             public void onProgress(int progress) {
+                progressDialogUpload.setMessage("Uploading " + progress + "%");
             }
         }).startUpload();
     }
 
-    private void showFragment(Fragment fragment) {
-        getSupportFragmentManager().
-                beginTransaction().
-                replace(R.id.frameLayoutContainerLogin, fragment)
-                .commit();
-    }
-
-    @Override
-    public void createUser(final User user, String password, final boolean isRememberMe, final Bitmap newProfilePic) {
-        mAuth.createUserWithEmailAndPassword(user.getName(), password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(user);
-                            myRef.child(USERS_TABLE).child(user.getName()).setValue(user);
-                            if (newProfilePic != null)
-                                uploadBitmap(newProfilePic, user.getName(), isRememberMe);
-                            else {
-                                if (iWaitingProgressBar != null)
-                                    iWaitingProgressBar.stopProgressBar();
-                                showMainActivity(isRememberMe);
-                            }
-                        } else {
-                            Toast.makeText(RegisterLoginActivity.this, "Error " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-    }
-
-    @Override
-    public void signIn(final String email, String password, final boolean isRememberMe) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            getUserFromFirebase(email, isRememberMe);
-                        } else {
-                            Toast.makeText(RegisterLoginActivity.this, "ERROR USER NOT FOUND", Toast.LENGTH_LONG).show();
-                            if (iWaitingProgressBar != null)
-                                iWaitingProgressBar.stopProgressBar();
-                        }
-                    }
-                });
-    }
-
-    private void getUserFromFirebase(String key, final boolean isRememberMe) {
-        User user = new User();
-        user.setName(key);
-        myRef.child(FireBaseConstant.USERS_TABLE).child(user.getName()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User userProfile = dataSnapshot.getValue(User.class);
-                SharedPreferencesHelper.getInstance(RegisterLoginActivity.this).setUser(userProfile);
-                if (iWaitingProgressBar != null)
-                    iWaitingProgressBar.stopProgressBar();
-                showMainActivity(isRememberMe);
-                Toast.makeText(RegisterLoginActivity.this, "OK", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(RegisterLoginActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                if (iWaitingProgressBar != null)
-                    iWaitingProgressBar.stopProgressBar();
-            }
-        });
-    }
-
-    @Override
-    public void showRegisterFragment() {
-        fragment = new RegisterFragment();
-        showFragment(fragment);
-    }
-
-    @Override
-    public void showLoginFragment() {
-        fragment = new LoginFragment();
-        showFragment(fragment);
-    }
-
-    @Override
-    public void registerEventFromRegisterLogin(IWaitingProgressBar iWaitingProgressBar) {
-        this.iWaitingProgressBar = iWaitingProgressBar;
-    }
-
-    private void showMainActivity(boolean isRememberMe) {
-//        SharedPreferencesHelper.getInstance(this).setIsAlreadyLogin(isRememberMe);
+    private void showMainActivity() {
+        SharedPreferencesHelper.getInstance(this).setIsAlreadyLogin(true);
         Intent intent = new Intent(RegisterLoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();

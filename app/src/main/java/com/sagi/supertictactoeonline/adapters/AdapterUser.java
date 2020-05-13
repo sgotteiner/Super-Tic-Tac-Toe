@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sagi.supertictactoeonline.R;
 import com.sagi.supertictactoeonline.entities.User;
 import com.sagi.supertictactoeonline.utilities.DownloadImage;
-import com.sagi.supertictactoeonline.utilities.Patch;
+import com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.PlaceHolder>{
 
         holder.txtName.setText(user.getName());
         holder.txtRank.setText("(" + user.getRank() + ")");
-        new DownloadImage(Patch.PROFILES, user.getName(), new DownloadImage.IDownloadImage() {
+        new DownloadImage(user.getName(), new DownloadImage.IDownloadImage() {
             @Override
             public void onSuccess(Uri uri) {
                 Picasso.with(context).load(uri).fit().into(holder.imgProfile);
@@ -86,7 +86,6 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.PlaceHolder>{
     }
 
     public interface CallbackAdapterUser {
-
         void onPick(User user, boolean isJoin);
     }
 }

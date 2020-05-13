@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:hint="Enter Nickname"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/shape_editext"
         android:layout_marginTop="100dp"/>
 
     <com.google.android.gms.common.SignInButton

@@ -28,10 +28,8 @@ import com.sagi.supertictactoeonline.entities.User;
 import com.sagi.supertictactoeonline.interfaces.IUserFragmentGetEventFromMain;
 import com.sagi.supertictactoeonline.utilities.DownloadImage;
 import com.sagi.supertictactoeonline.utilities.ImageUtils;
-import com.sagi.supertictactoeonline.utilities.Patch;
 import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
 import com.sagi.supertictactoeonline.utilities.UploadImage;
-import com.sagi.supertictactoeonline.utilities.Utils;
 import com.squareup.picasso.Picasso;
 
 public class UserFragment extends Fragment implements IUserFragmentGetEventFromMain {
@@ -56,10 +54,8 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_user, container, false);
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -113,15 +109,15 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
     }
 
     private void uploadImage() {
-        new UploadImage(Patch.PROFILES, user.getName(), bitmapProfile, new UploadImage.IUploadImage() {
+        new UploadImage(user.getName(), bitmapProfile, new UploadImage.IUploadImage() {
             @Override
             public void onSuccess() {
-                downloadCompleted();
+                uploadCompleted();
             }
 
             @Override
             public void onFail(String error) {
-                downloadCompleted();
+                uploadCompleted();
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
 
             }
@@ -133,14 +129,15 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         }).startUpload();
     }
 
-    private void downloadCompleted(){
+    private void uploadCompleted(){
         progressDialogUpload.dismiss();
         if (mListener != null)
             mListener.showHomePage();
     }
+
     private void loadImageProfile() {
         showDialogDownload();
-        new DownloadImage(Patch.PROFILES, user.getName(), new DownloadImage.IDownloadImage() {
+        new DownloadImage(user.getName(), new DownloadImage.IDownloadImage() {
             @Override
             public void onSuccess(Uri uri) {
                 stopProgressBar();
@@ -230,12 +227,6 @@ public class UserFragment extends Fragment implements IUserFragmentGetEventFromM
         mListener.showHomePage();
     }
 
-    @Override
-    public void onDownloadUri(Uri uriProfile) {
-        Picasso.with(getContext()).load(uriProfile).fit().into(imgProfilePicture);
-    }
-
-    @Override
     public void stopProgressBar() {
         progressDialogDownload.dismiss();
     }

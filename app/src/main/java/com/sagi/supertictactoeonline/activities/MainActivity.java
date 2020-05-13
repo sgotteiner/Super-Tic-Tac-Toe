@@ -21,10 +21,6 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -44,7 +40,6 @@ import com.sagi.supertictactoeonline.interfaces.IHomePage;
 import com.sagi.supertictactoeonline.interfaces.IPlayFragmentUpdateGameChanges;
 import com.sagi.supertictactoeonline.interfaces.IUserFragmentGetEventFromMain;
 import com.sagi.supertictactoeonline.utilities.SharedPreferencesHelper;
-import com.sagi.supertictactoeonline.utilities.Utils;
 import com.sagi.supertictactoeonline.utilities.constants.Constants;
 import com.sagi.supertictactoeonline.utilities.constants.FireBaseConstant;
 
@@ -428,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements
         strShareMessage += "www.supertictactoeonline.com/play=" + key;
         strShareMessage += "\n\nor if you haven't downloaded the app yet you can do it here\n" +
                 "https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID + "\n\n";
-        Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.super_tic_tac_toe_online_icon);
+        Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
         String path = MediaStore.Images.Media.insertImage(getContentResolver(), logo, "title", null);
         if (path != null) {
             Uri logoUri = Uri.parse(path);
