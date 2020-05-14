@@ -104,9 +104,9 @@ public class HomeFragment extends Fragment implements IHomePage {
         switch ((String)spnTimeLimit.getSelectedItem()){
             case "1 minute":
                 return 60000;
-            case "3 minute":
+            case "3 minutes":
                 return 180000;
-            case "5 minute":
+            case "5 minutes":
                 return 300000;
         }
         return 0;

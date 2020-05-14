@@ -7,6 +7,5 @@ public class FireBaseConstant {
     public static final String RANDOM_GAMES_TABLE = "Random Games";
     public static final String FRIENDS_GAMES_TABLE = "Friends Games";
     public static final String FRIENDS_TABLE = "Friends Games";
-    public static final String IS_USER_ACTIVE = "isUserActive";
     public static final String PROFILES = "Profiles";
 }

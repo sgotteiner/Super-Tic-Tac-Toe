@@ -351,6 +351,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
     private void win() {
         isPauseX = isPauseO = true;
+        isRematch = false;
         isGameStarted = false;
         initialWinDialog();
         dialog.show();
@@ -378,7 +379,6 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             txtRematch.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    isRematch = true;
                     game.setXTurn(true);
                     isX = !isX;
                     game.setOver(false);
@@ -415,7 +415,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
 
     private void updateScore(boolean isUpdateFirebase) {
         int rankX, rankO;
-        if (isCreator) {
+        if (isX) {
             rankX = SharedPreferencesHelper.getInstance(getContext()).getUser().getRank();
             rankO = otherPlayer.getRank();
         } else {
@@ -440,7 +440,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         rankX = rankX < 0 ? 0 : rankX;
         rankO = rankO < 0 ? 0 : rankO;
 
-        if (isCreator) {
+        if (isX) {
             SharedPreferencesHelper.getInstance(getContext()).setRank(rankX);
             otherPlayer.setRank(rankO);
         } else {
@@ -452,7 +452,7 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
         txtRankO.setText(String.valueOf(rankO));
 
         if (isUpdateFirebase && mListener != null)
-            if (isCreator)
+            if (isX)
                 mListener.updateScore(rankX, rankO, otherPlayer.getName());
             else mListener.updateScore(rankO, rankX, otherPlayer.getName());
     }
@@ -513,8 +513,9 @@ public class PlayFragment extends Fragment implements View.OnClickListener,
             if (!game.isOver())
                 switchClock();
         } else {
-            if (isRematch)
-                isGameStarted = true;
+            if (!isRematch)
+                isRematch = true;
+            else isGameStarted = true;
             isOtherPlayerLeft = false;
             ((OnlineGame) this.game).setKeyPlayer2(game.getKeyPlayer2());
             ((OnlineGame) this.game).setPlayer2Connected(game.isPlayer2Connected());

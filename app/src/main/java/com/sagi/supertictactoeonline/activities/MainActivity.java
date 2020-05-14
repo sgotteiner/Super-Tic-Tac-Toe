@@ -173,19 +173,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void logOutFromApp() {
-        updateIsUserActiveInApp(false);
         SharedPreferencesHelper.getInstance(this).resetSharedPreferences();
         Intent intent = new Intent(this, RegisterLoginActivity.class);
         intent.putExtra("isSignOut", true);
         startActivity(intent);
         finish();
-    }
-
-    private void updateIsUserActiveInApp(boolean isUserActive) {
-        User user = SharedPreferencesHelper.getInstance(MainActivity.this).getUser();
-        if (user == null)
-            return;
-        myRef.child(USERS_TABLE).child(user.getName()).child(FireBaseConstant.IS_USER_ACTIVE).setValue(isUserActive);
     }
 
     @Override
